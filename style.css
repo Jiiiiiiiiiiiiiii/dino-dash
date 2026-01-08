@@ -3,12 +3,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Arial Rounded MT Bold', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  background: linear-gradient(135deg, #1a2980, #26d0ce);
-  color: #333;
+  background: linear-gradient(135deg, #1a6e3a, #2a9d8f);
+  color: #fff;
   min-height: 100vh;
   padding: 20px;
   overflow-x: hidden;
@@ -18,10 +18,12 @@ body {
 .container {
   max-width: 1000px;
   margin: 0 auto;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: rgba(42, 157, 143, 0.1);
   border-radius: 20px;
   padding: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border: 3px solid #e9c46a;
+  backdrop-filter: blur(5px);
 }
 
 /* ====== HEADER ====== */
@@ -29,24 +31,26 @@ header {
   text-align: center;
   margin-bottom: 25px;
   padding-bottom: 15px;
-  border-bottom: 3px dashed #26d0ce;
+  border-bottom: 3px solid #e9c46a;
 }
 
 h1 {
-  color: #1a2980;
+  color: #e9c46a;
   font-size: 2.8rem;
   margin-bottom: 10px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 3px 3px 0 #264653, 5px 5px 0 rgba(0, 0, 0, 0.2);
+  letter-spacing: 1px;
 }
 
 .subtitle {
-  color: #555;
+  color: #fff;
   font-size: 1.1rem;
   margin-top: 5px;
-  background: linear-gradient(to right, #1a2980, #26d0ce);
+  background: linear-gradient(to right, #e9c46a, #f4a261);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: bold;
 }
 
 /* ====== GAME INFO ====== */
@@ -66,7 +70,7 @@ h1 {
 }
 
 .info-box {
-  background: linear-gradient(to right, #1a2980, #26d0ce);
+  background: linear-gradient(to right, #264653, #2a9d8f);
   color: white;
   padding: 12px 20px;
   border-radius: 10px;
@@ -74,12 +78,14 @@ h1 {
   align-items: center;
   gap: 8px;
   font-weight: bold;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   min-width: 140px;
+  border: 2px solid #e9c46a;
 }
 
 .info-box i {
   font-size: 1.2rem;
+  color: #f4a261;
 }
 
 .controls {
@@ -89,7 +95,7 @@ h1 {
 }
 
 .control-btn {
-  background: linear-gradient(to right, #ff7e5f, #feb47b);
+  background: linear-gradient(to right, #e76f51, #f4a261);
   color: white;
   border: none;
   padding: 12px 20px;
@@ -100,12 +106,13 @@ h1 {
   align-items: center;
   gap: 8px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border: 2px solid #e9c46a;
 }
 
 .control-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 .control-btn:active {
@@ -122,152 +129,224 @@ h1 {
 
 .game {
   width: 800px;
-  height: 300px;
-  border: 5px solid #1a2980;
+  height: 350px;
+  border: 5px solid #264653;
   margin: 0 auto;
   position: relative;
   overflow: hidden;
   background: 
-    linear-gradient(to bottom, #87ceeb 40%, #e0f7e0 40%, #e0f7e0 100%),
-    repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.1) 50px, rgba(255,255,255,0.1) 100px);
+    linear-gradient(to bottom, #87ceeb 30%, #a2d2ff 30%, #a2d2ff 70%, #e9c46a 70%),
+    radial-gradient(circle at 10% 20%, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 100% 100%, 50px 50px;
   border-radius: 15px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Ground pattern */
-.game:before {
-  content: '';
+.ground {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 5px;
-  background: repeating-linear-gradient(90deg, #8B4513, #8B4513 20px, #A0522D 20px, #A0522D 40px);
-}
-
-/* ====== DINOSAUR ====== */
-#dino {
-  width: 60px;
   height: 70px;
-  background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+  background: 
+    linear-gradient(to top, #e9c46a, #f4a261),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.1) 40px, rgba(0,0,0,0.1) 80px);
+  z-index: 1;
+}
+
+/* ====== DINOSAUR CHARACTER ====== */
+#dino {
+  width: 80px;
+  height: 90px;
   position: absolute;
-  bottom: 5px;
+  bottom: 70px;
   left: 80px;
-  border-radius: 10px 10px 0 0;
-  z-index: 10;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: bottom 0.3s ease;
+  z-index: 20;
+  transform-origin: bottom center;
 }
 
-/* Dino details */
-#dino:before {
-  content: '';
+.dino-body {
   position: absolute;
-  width: 20px;
-  height: 15px;
-  background-color: #2E7D32;
-  top: -10px;
+  width: 60px;
+  height: 50px;
+  background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+  border-radius: 30px 30px 10px 10px;
   left: 10px;
-  border-radius: 50%;
+  top: 20px;
+  box-shadow: inset 0 -5px 0 #1B5E20;
 }
 
-#dino:after {
+.dino-head {
+  position: absolute;
+  width: 40px;
+  height: 35px;
+  background: #4CAF50;
+  border-radius: 20px 20px 10px 10px;
+  left: 50px;
+  top: 10px;
+  box-shadow: inset -5px 0 0 #2E7D32;
+}
+
+.dino-eye {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  left: 70px;
+  top: 20px;
+  box-shadow: 0 0 0 2px black;
+}
+
+.dino-eye:after {
   content: '';
   position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  top: 15px;
-  right: 10px;
+  width: 4px;
+  height: 4px;
+  background: black;
   border-radius: 50%;
-  box-shadow: -15px 0 0 white;
+  top: 2px;
+  left: 2px;
 }
 
-/* Dino legs */
-#dino .leg {
+.dino-tail {
   position: absolute;
-  width: 10px;
+  width: 30px;
   height: 15px;
   background: #2E7D32;
-  bottom: -15px;
+  border-radius: 0 15px 15px 0;
+  left: 0;
+  top: 35px;
 }
 
-#dino .leg.front {
-  left: 15px;
+.dino-leg {
+  position: absolute;
+  width: 12px;
+  height: 25px;
+  background: #2E7D32;
+  bottom: -10px;
+  border-radius: 6px;
 }
 
-#dino .leg.back {
-  right: 15px;
+.dino-leg.front-leg {
+  left: 25px;
+  animation: legMove 0.5s infinite alternate;
+}
+
+.dino-leg.back-leg {
+  left: 45px;
+  animation: legMove 0.5s infinite alternate-reverse;
+}
+
+@keyframes legMove {
+  0% { height: 25px; }
+  100% { height: 20px; }
 }
 
 /* ====== JUMP ANIMATIONS ====== */
 #dino.jumping {
-  animation: jumpAnimation 0.5s ease-out;
+  animation: dinoJump 0.5s ease-out;
 }
 
 #dino.double-jumping {
-  animation: doubleJumpAnimation 0.6s ease-out;
+  animation: dinoDoubleJump 0.6s ease-out;
 }
 
-@keyframes jumpAnimation {
-  0% { bottom: 5px; transform: scaleY(1); }
-  50% { bottom: 125px; transform: scaleY(0.9); }
-  100% { bottom: 5px; transform: scaleY(1); }
+@keyframes dinoJump {
+  0% { bottom: 70px; transform: rotate(0deg); }
+  50% { bottom: 190px; transform: rotate(-5deg); }
+  100% { bottom: 70px; transform: rotate(0deg); }
 }
 
-@keyframes doubleJumpAnimation {
-  0% { bottom: 125px; transform: scaleY(0.9); }
-  50% { bottom: 195px; transform: scaleY(0.8); }
-  100% { bottom: 5px; transform: scaleY(1); }
+@keyframes dinoDoubleJump {
+  0% { bottom: 70px; transform: rotate(0deg); }
+  25% { bottom: 190px; transform: rotate(-5deg); }
+  50% { bottom: 260px; transform: rotate(5deg); }
+  100% { bottom: 70px; transform: rotate(0deg); }
 }
 
 /* ====== OBSTACLES ====== */
 .obstacle {
   position: absolute;
-  bottom: 5px;
+  bottom: 70px;
   transition: right 0.1s linear;
+  z-index: 10;
 }
 
-/* Cactus */
-.cactus {
-  width: 25px;
-  height: 60px;
-  background: linear-gradient(to bottom, #8B4513, #A0522D);
-  border-radius: 5px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+/* Tree Obstacle */
+.tree {
+  width: 40px;
+  height: 120px;
+  background: linear-gradient(to bottom, #8B4513, #654321);
   position: relative;
+  border-radius: 5px 5px 0 0;
 }
 
-.cactus:before {
+.tree:before {
   content: '';
   position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #8B4513;
-  top: -5px;
-  left: 7px;
+  width: 80px;
+  height: 60px;
+  background: #2E7D32;
+  border-radius: 50%;
+  top: -30px;
+  left: -20px;
+  box-shadow: inset 0 -10px 0 #1B5E20;
+}
+
+.tree:after {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 50px;
+  background: #4CAF50;
+  border-radius: 50%;
+  top: -40px;
+  left: -10px;
+}
+
+/* Rock Obstacle */
+.rock {
+  width: 60px;
+  height: 45px;
+  background: linear-gradient(to bottom, #808080, #696969, #505050);
+  border-radius: 15px;
+  position: relative;
+  box-shadow: 
+    0 5px 0 #505050,
+    inset 0 -5px 0 #696969;
+}
+
+.rock:before, .rock:after {
+  content: '';
+  position: absolute;
+  background: #696969;
   border-radius: 50%;
 }
 
-/* Rock */
-.rock {
-  width: 50px;
-  height: 40px;
-  background: linear-gradient(to bottom, #808080, #696969);
-  border-radius: 10px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+.rock:before {
+  width: 20px;
+  height: 20px;
+  top: -5px;
+  left: 10px;
 }
 
-/* River */
+.rock:after {
+  width: 15px;
+  height: 15px;
+  top: -3px;
+  right: 15px;
+}
+
+/* River Obstacle */
 .river {
-  width: 120px;
-  height: 30px;
-  background: linear-gradient(to bottom, #1e90ff, #4169e1);
-  border-radius: 0 0 15px 15px;
-  bottom: 5px;
-  animation: riverFlow 2s infinite linear;
+  width: 140px;
+  height: 40px;
+  background: linear-gradient(to bottom, #1e90ff, #4169e1, #1c5fd6);
   position: relative;
+  border-radius: 0 0 20px 20px;
   overflow: hidden;
+  box-shadow: inset 0 -5px 10px rgba(0,0,0,0.3);
 }
 
 .river:before {
@@ -278,31 +357,68 @@ h1 {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  animation: riverShine 2s infinite linear;
+  animation: riverFlow 2s infinite linear;
 }
 
-/* Other Dino */
-.other-dino {
-  width: 50px;
-  height: 60px;
-  background: linear-gradient(to bottom, #FF5722, #D84315);
-  border-radius: 10px 10px 0 0;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
-  animation: dinoRun 0.5s infinite alternate;
+.river:after {
+  content: '🌊';
+  position: absolute;
+  font-size: 20px;
+  top: 10px;
+  left: 20px;
+  animation: waveMove 1s infinite linear;
 }
 
-/* Obstacle animations */
 @keyframes riverFlow {
-  0% { background-position: 0 0; }
-  100% { background-position: 100px 0; }
-}
-
-@keyframes riverShine {
   0% { left: -100%; }
   100% { left: 100%; }
 }
 
-@keyframes dinoRun {
+@keyframes waveMove {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Other Dinosaur Obstacle */
+.other-dino {
+  width: 70px;
+  height: 80px;
+  position: relative;
+  animation: otherDinoMove 0.8s infinite alternate;
+}
+
+.other-dino .body {
+  position: absolute;
+  width: 50px;
+  height: 40px;
+  background: linear-gradient(to bottom, #FF5722, #D84315);
+  border-radius: 25px 25px 10px 10px;
+  left: 10px;
+  top: 20px;
+}
+
+.other-dino .head {
+  position: absolute;
+  width: 30px;
+  height: 25px;
+  background: #FF5722;
+  border-radius: 15px 15px 10px 10px;
+  left: 50px;
+  top: 15px;
+}
+
+.other-dino .eye {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  left: 65px;
+  top: 22px;
+  box-shadow: 0 0 0 1px black;
+}
+
+@keyframes otherDinoMove {
   0% { transform: translateY(0); }
   100% { transform: translateY(-5px); }
 }
@@ -314,57 +430,58 @@ h1 {
   gap: 30px;
   margin-top: 15px;
   flex-wrap: wrap;
-  background: #f8f9fa;
+  background: rgba(38, 70, 83, 0.8);
   padding: 15px;
   border-radius: 10px;
-  border: 2px solid #1a2980;
+  border: 2px solid #e9c46a;
+  backdrop-filter: blur(5px);
 }
 
 .legend-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  min-width: 120px;
+  gap: 8px;
+  min-width: 130px;
 }
 
-.legend-cactus, .legend-rock, .legend-river, .legend-other-dino {
-  width: 40px;
-  height: 40px;
-  border-radius: 5px;
+.legend-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(233, 196, 106, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #f4a261;
+  border: 2px solid #e9c46a;
 }
 
-.legend-cactus {
-  background: linear-gradient(to bottom, #8B4513, #A0522D);
-}
-
-.legend-rock {
-  background: linear-gradient(to bottom, #808080, #696969);
-}
-
-.legend-river {
-  background: linear-gradient(to bottom, #1e90ff, #4169e1);
-}
-
-.legend-other-dino {
-  background: linear-gradient(to bottom, #FF5722, #D84315);
+.legend-item span {
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.9rem;
 }
 
 /* ====== INSTRUCTIONS ====== */
 .instructions {
-  background-color: #f9f9f9;
+  background: rgba(38, 70, 83, 0.9);
   border-radius: 15px;
   padding: 20px;
   margin-top: 30px;
-  border-left: 5px solid #26d0ce;
+  border: 2px solid #e9c46a;
+  backdrop-filter: blur(5px);
 }
 
 .instructions h3 {
-  color: #1a2980;
+  color: #e9c46a;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
+  font-size: 1.5rem;
 }
 
 .instructions-grid {
@@ -374,18 +491,20 @@ h1 {
 }
 
 .instruction-card {
-  background: white;
+  background: rgba(42, 157, 143, 0.3);
   padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border: 1px solid #2a9d8f;
 }
 
 .instruction-card h4 {
-  color: #1a2980;
+  color: #f4a261;
   margin-bottom: 10px;
   display: flex;
   align-items: center;
   gap: 8px;
+  border-bottom: 2px solid #e9c46a;
+  padding-bottom: 5px;
 }
 
 .instruction-card ul {
@@ -394,35 +513,17 @@ h1 {
 }
 
 .instruction-card li {
-  padding: 5px 0;
-  border-bottom: 1px dashed #eee;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(233, 196, 106, 0.3);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  color: white;
 }
 
-.obstacle-icon {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  margin-right: 5px;
-}
-
-.obstacle-icon.cactus {
-  background: #8B4513;
-}
-
-.obstacle-icon.rock {
-  background: #808080;
-}
-
-.obstacle-icon.river {
-  background: #1e90ff;
-}
-
-.obstacle-icon.other-dino {
-  background: #FF5722;
+.instruction-card li i {
+  color: #f4a261;
+  width: 20px;
 }
 
 /* ====== MODALS ====== */
@@ -433,20 +534,21 @@ h1 {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
   justify-content: center;
   align-items: center;
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #fff, #f0f8ff);
+  background: linear-gradient(135deg, #264653, #2a9d8f);
   padding: 40px;
   border-radius: 20px;
   text-align: center;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  border: 3px solid #e9c46a;
   animation: modalPop 0.3s ease-out;
 }
 
@@ -456,9 +558,10 @@ h1 {
 }
 
 .modal-content h2 {
-  color: #1a2980;
+  color: #e9c46a;
   margin-bottom: 20px;
   font-size: 2.5rem;
+  text-shadow: 2px 2px 0 #264653;
 }
 
 .stats {
@@ -474,21 +577,29 @@ h1 {
   justify-content: center;
   gap: 10px;
   font-size: 1.3rem;
-  color: #333;
+  color: white;
+  background: rgba(42, 157, 143, 0.3);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2a9d8f;
+}
+
+.stat-item i {
+  color: #f4a261;
 }
 
 .tip {
-  background: #e3f2fd;
-  padding: 10px;
+  background: rgba(233, 196, 106, 0.2);
+  padding: 12px;
   border-radius: 8px;
   margin: 15px 0;
   font-style: italic;
-  color: #1a2980;
-  border-left: 4px solid #26d0ce;
+  color: #e9c46a;
+  border-left: 4px solid #f4a261;
 }
 
 .play-again-btn {
-  background: linear-gradient(to right, #1a2980, #26d0ce);
+  background: linear-gradient(to right, #e76f51, #f4a261);
   color: white;
   border: none;
   padding: 15px 40px;
@@ -501,11 +612,13 @@ h1 {
   align-items: center;
   gap: 10px;
   transition: all 0.3s ease;
+  border: 2px solid #e9c46a;
 }
 
 .play-again-btn:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(to right, #f4a261, #e9c46a);
 }
 
 /* ====== GAME STATE INDICATORS ====== */
@@ -514,13 +627,16 @@ h1 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
+  background: rgba(38, 70, 83, 0.9);
+  color: #e9c46a;
   padding: 20px 40px;
   border-radius: 10px;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   display: none;
-  z-index: 1000;
+  z-index: 100;
+  border: 3px solid #e9c46a;
+  text-shadow: 2px 2px 0 #264653;
+  font-weight: bold;
 }
 
 .game-state.show {
@@ -536,7 +652,7 @@ h1 {
 }
 
 /* ====== GAME OVER EFFECTS ====== */
-.game-over {
+.game-over-shake {
   animation: gameOverShake 0.5s ease-in-out;
 }
 
@@ -558,29 +674,53 @@ h1 {
   font-weight: bold;
   display: none;
   z-index: 100;
+  border: 2px solid #4CAF50;
 }
 
 /* ====== SCORE POPUP ====== */
 .score-popup {
   position: absolute;
-  color: #4CAF50;
+  color: #e9c46a;
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   animation: scoreFloat 1s forwards;
   pointer-events: none;
   z-index: 100;
+  text-shadow: 2px 2px 0 #264653;
 }
 
 @keyframes scoreFloat {
   0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-50px); opacity: 0; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+
+/* ====== CLOUDS BACKGROUND ====== */
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  box-shadow: 0 0 20px rgba(255,255,255,0.5);
+  animation: cloudMove 60s infinite linear;
+  z-index: 0;
+}
+
+.cloud:before, .cloud:after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+
+@keyframes cloudMove {
+  0% { transform: translateX(800px); }
+  100% { transform: translateX(-200px); }
 }
 
 /* ====== RESPONSIVE DESIGN ====== */
 @media (max-width: 850px) {
   .game {
     width: 95%;
-    height: 250px;
+    height: 300px;
   }
   
   .game-info {
@@ -616,6 +756,23 @@ h1 {
     width: 100%;
     justify-content: flex-start;
   }
+  
+  #dino {
+    width: 60px;
+    height: 70px;
+    left: 50px;
+  }
+  
+  .dino-body {
+    width: 45px;
+    height: 40px;
+  }
+  
+  .dino-head {
+    width: 30px;
+    height: 25px;
+    left: 40px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -630,10 +787,15 @@ h1 {
   .info-box {
     min-width: 120px;
     padding: 10px 15px;
+    font-size: 0.9rem;
   }
   
   .control-btn {
     padding: 10px 15px;
     font-size: 0.9rem;
+  }
+  
+  .game {
+    height: 250px;
   }
 }
