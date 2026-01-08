@@ -268,57 +268,59 @@ h1 {
   100% { bottom: 70px; transform: rotate(0deg); }
 }
 
-/* ====== OBSTACLES ====== */
+/* ====== OBSTACLES - ALL AT BOTTOM ONLY ====== */
 .obstacle {
   position: absolute;
-  bottom: 70px;
+  bottom: 70px; /* LAHAT NG OBSTACLE NASA BABA LANG! */
   transition: right 0.1s linear;
   z-index: 10;
   pointer-events: none;
 }
 
-/* Tree Obstacle */
+/* Tree Obstacle - SHORTER FOR GROUND ONLY */
 .tree {
   width: 40px;
-  height: 120px;
+  height: 80px; /* SHORTER - NASA GROUND LANG */
   background: linear-gradient(to bottom, #8B4513, #654321);
   position: relative;
   border-radius: 5px 5px 0 0;
+  bottom: 70px !important; /* FORCED TO BOTTOM */
 }
 
 .tree:before {
   content: '';
   position: absolute;
-  width: 80px;
-  height: 60px;
+  width: 60px;
+  height: 50px;
   background: #2E7D32;
   border-radius: 50%;
-  top: -30px;
-  left: -20px;
+  top: -25px;
+  left: -10px;
   box-shadow: inset 0 -10px 0 #1B5E20;
 }
 
 .tree:after {
   content: '';
   position: absolute;
-  width: 60px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   background: #4CAF50;
   border-radius: 50%;
-  top: -40px;
-  left: -10px;
+  top: -30px;
+  left: 0;
 }
 
-/* Rock Obstacle */
+/* Rock Obstacle - ON GROUND */
 .rock {
   width: 60px;
-  height: 45px;
+  height: 35px; /* SHORTER - NASA GROUND */
   background: linear-gradient(to bottom, #808080, #696969, #505050);
-  border-radius: 15px;
+  border-radius: 10px 10px 5px 5px;
   position: relative;
   box-shadow: 
-    0 5px 0 #505050,
-    inset 0 -5px 0 #696969;
+    0 3px 0 #505050,
+    inset 0 -3px 0 #696969;
+  bottom: 70px !important; /* FORCED TO BOTTOM */
 }
 
 .rock:before, .rock:after {
@@ -329,28 +331,29 @@ h1 {
 }
 
 .rock:before {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   top: -5px;
   left: 10px;
 }
 
 .rock:after {
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   top: -3px;
   right: 15px;
 }
 
-/* River Obstacle */
+/* River Obstacle - ON GROUND */
 .river {
   width: 140px;
-  height: 40px;
+  height: 30px; /* SHALLOWER - NASA GROUND */
   background: linear-gradient(to bottom, #1e90ff, #4169e1, #1c5fd6);
   position: relative;
-  border-radius: 0 0 20px 20px;
+  border-radius: 0 0 15px 15px;
   overflow: hidden;
-  box-shadow: inset 0 -5px 10px rgba(0,0,0,0.3);
+  box-shadow: inset 0 -3px 5px rgba(0,0,0,0.3);
+  bottom: 70px !important; /* FORCED TO BOTTOM */
 }
 
 .river:before {
@@ -360,17 +363,17 @@ h1 {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  animation: riverFlow 2s infinite linear;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: riverFlow 1.5s infinite linear;
 }
 
 .river:after {
-  content: '🌊';
+  content: '💧';
   position: absolute;
-  font-size: 20px;
-  top: 10px;
-  left: 20px;
-  animation: waveMove 1s infinite linear;
+  font-size: 16px;
+  top: 5px;
+  left: 15px;
+  animation: waveMove 0.8s infinite linear;
 }
 
 @keyframes riverFlow {
@@ -380,25 +383,27 @@ h1 {
 
 @keyframes waveMove {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  50% { transform: translateY(-2px); }
 }
 
-/* Other Dinosaur Obstacle */
+/* Other Dinosaur Obstacle - ON GROUND */
 .other-dino {
   width: 70px;
-  height: 80px;
+  height: 60px; /* SHORTER - NASA GROUND */
   position: relative;
   animation: otherDinoMove 0.8s infinite alternate;
+  bottom: 70px !important; /* FORCED TO BOTTOM */
 }
 
 .other-dino .body {
   position: absolute;
   width: 50px;
-  height: 40px;
+  height: 35px;
   background: linear-gradient(to bottom, #FF5722, #D84315);
-  border-radius: 25px 25px 10px 10px;
+  border-radius: 20px 20px 10px 10px;
   left: 10px;
-  top: 20px;
+  top: 15px;
+  bottom: 0;
 }
 
 .other-dino .head {
@@ -408,7 +413,7 @@ h1 {
   background: #FF5722;
   border-radius: 15px 15px 10px 10px;
   left: 50px;
-  top: 15px;
+  top: 10px;
 }
 
 .other-dino .eye {
@@ -418,13 +423,13 @@ h1 {
   background: white;
   border-radius: 50%;
   left: 65px;
-  top: 22px;
+  top: 17px;
   box-shadow: 0 0 0 1px black;
 }
 
 @keyframes otherDinoMove {
   0% { transform: translateY(0); }
-  100% { transform: translateY(-5px); }
+  100% { transform: translateY(-3px); }
 }
 
 /* ====== OBSTACLE LEGEND ====== */
@@ -822,22 +827,22 @@ h1 {
   
   .tree {
     width: 30px;
-    height: 100px;
+    height: 60px;
   }
   
   .rock {
     width: 50px;
-    height: 35px;
+    height: 30px;
   }
   
   .river {
-    width: 120px;
-    height: 35px;
+    width: 100px;
+    height: 25px;
   }
   
   .other-dino {
     width: 60px;
-    height: 70px;
+    height: 50px;
   }
 }
 
@@ -880,5 +885,25 @@ h1 {
     width: 25px;
     height: 20px;
     left: 30px;
+  }
+  
+  .tree {
+    width: 25px;
+    height: 50px;
+  }
+  
+  .rock {
+    width: 40px;
+    height: 25px;
+  }
+  
+  .river {
+    width: 80px;
+    height: 20px;
+  }
+  
+  .other-dino {
+    width: 50px;
+    height: 40px;
   }
 }
