@@ -530,15 +530,15 @@ function checkCollision(obstacle) {
     dinoBottom = 70; // On ground
   }
   
-  // DINO HITBOX - smaller than visual dino for fair gameplay
+  // DINO HITBOX - SMALLER and MORE ACCURATE
   const dinoHitbox = {
-    left: 100,        // Start 20px from left of dino visual
-    right: 120,       // End 20px from right of dino visual
-    bottom: dinoBottom + 20, // Start 20px above feet
-    top: dinoBottom + 70     // End 20px below head
+    left: 95,        // 15px from left edge of visual dino
+    right: 125,      // 15px from right edge of visual dino
+    bottom: dinoBottom + 25, // Start 25px above feet
+    top: dinoBottom + 65     // End 25px below head
   };
   
-  // OBSTACLE HITBOX - actual obstacle position
+  // OBSTACLE HITBOX - EXACT obstacle position
   const obstacleHitbox = {
     left: 800 - obstacle.right - obstacle.width,
     right: 800 - obstacle.right,
@@ -546,41 +546,50 @@ function checkCollision(obstacle) {
     top: 70 + obstacle.height
   };
   
-  // DEBUG: Show hitboxes (enable if needed)
+  // DEBUG: Show hitboxes (press H to toggle)
   if (window.showHitboxes) {
     drawHitbox(dinoHitbox, 'dino');
     drawHitbox(obstacleHitbox, 'obstacle');
   }
   
-  // Check for ACTUAL COLLISION (not proximity)
-  const isColliding = (
-    dinoHitbox.left < obstacleHitbox.right &&    // Dino left edge before obstacle right edge
-    dinoHitbox.right > obstacleHitbox.left &&    // Dino right edge after obstacle left edge
-    dinoHitbox.bottom < obstacleHitbox.top &&    // Dino bottom above obstacle top
-    dinoHitbox.top > obstacleHitbox.bottom       // Dino top below obstacle bottom
-  );
-  
-  // Special case for rivers
+  // SPECIAL CASE FOR RIVERS
   if (obstacle.type === 'river') {
-    // For rivers, only collide if dino is LOW (not jumping high enough)
-    const riverCollision = (
-      dinoHitbox.left < obstacleHitbox.right &&
-      dinoHitbox.right > obstacleHitbox.left &&
-      dinoBottom < 100  // Only collide if dino is below 100px (too low for river)
+    // For rivers, only collide if dino is TOO LOW (not jumping enough)
+    // River needs double jump, so dino must be above 150px to clear it
+    const isInRiverHorizontally = (
+      dinoHitbox.left < obstacleHitbox.right - 10 &&  // 10px buffer
+      dinoHitbox.right > obstacleHitbox.left + 10     // 10px buffer
     );
     
-    if (riverCollision) {
-      console.log("💧 River collision - Dino too low!");
+    const isTooLowForRiver = dinoBottom < 150; // Must be above 150px to clear river
+    
+    if (isInRiverHorizontally && isTooLowForRiver) {
+      console.log("💧 River hit - Dino too low! Height:", dinoBottom);
+      return true;
     }
-    return riverCollision;
+    return false;
   }
   
+  // REGULAR OBSTACLES (Trees, Rocks, Other Dinos)
+  // Check for ACTUAL COLLISION with generous buffers
+  const horizontalCollision = (
+    dinoHitbox.left < obstacleHitbox.right - 15 &&  // 15px buffer on right
+    dinoHitbox.right > obstacleHitbox.left + 15     // 15px buffer on left
+  );
+  
+  const verticalCollision = (
+    dinoHitbox.bottom < obstacleHitbox.top - 10 &&  // 10px buffer on top
+    dinoHitbox.top > obstacleHitbox.bottom + 10     // 10px buffer on bottom
+  );
+  
+  // Must have BOTH horizontal and vertical collision
+  const isColliding = horizontalCollision && verticalCollision;
+  
   if (isColliding) {
-    console.log("💥 COLLISION DETECTED!");
-    console.log("Dino position:", dinoBottom);
+    console.log("💥 COLLISION! Type:", obstacle.type);
+    console.log("Dino height:", dinoBottom);
     console.log("Dino hitbox:", dinoHitbox);
     console.log("Obstacle hitbox:", obstacleHitbox);
-    console.log("Obstacle type:", obstacle.type);
   }
   
   return isColliding;
@@ -774,7 +783,7 @@ function toggleAutoJump() {
 
 // ====== EVENT LISTENERS ======
 
-// Keyboard controls - FIXED
+// Keyboard controls
 document.addEventListener("keydown", function (e) {
   // Prevent spacebar from scrolling page
   if (e.code === "Space") {
@@ -818,11 +827,12 @@ document.addEventListener("keydown", function (e) {
       // Toggle hitbox visualization
       window.showHitboxes = !window.showHitboxes;
       showGameMessage(window.showHitboxes ? "Hitboxes ON" : "Hitboxes OFF");
+      console.log("Hitbox visualization:", window.showHitboxes ? "ON" : "OFF");
       break;
   }
 });
 
-// Click controls - FIXED
+// Click controls
 let lastClickTime = 0;
 gameArea.addEventListener("click", function(e) {
   // Don't jump when clicking buttons or modals
@@ -865,8 +875,16 @@ window.addEventListener('load', () => {
   updateDisplays();
   
   console.log("🎮 Dino Dash: Jurassic Adventure Loaded!");
-  console.log("📱 Controls: SPACE to jump, P to pause, R to restart, A for auto-jump");
-  console.log("🎯 Press H to toggle hitbox visualization (for debugging)");
+  console.log("📱 Controls:");
+  console.log("  SPACE - Jump / Start game");
+  console.log("  Double SPACE - Double jump for rivers");
+  console.log("  CLICK - Jump / Start game");
+  console.log("  Double CLICK - Double jump for rivers");
+  console.log("  P - Pause/Resume game");
+  console.log("  R - Restart game");
+  console.log("  A - Toggle Auto-Jump mode");
+  console.log("  H - Toggle hitbox visualization (debug)");
+  console.log("  Ctrl+D - Show game debug info");
   console.log("🎯 Game starts slow and gets faster at higher levels!");
 });
 
