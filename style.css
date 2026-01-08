@@ -142,6 +142,7 @@ h1 {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
+/* FLOOR/GROUND */
 .ground {
   position: absolute;
   bottom: 0;
@@ -154,12 +155,29 @@ h1 {
   z-index: 1;
 }
 
+/* Floor line for debugging */
+.ground-line {
+  position: absolute;
+  bottom: 70px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 0, 0, 0.5);
+  z-index: 5;
+  pointer-events: none;
+  display: none;
+}
+
+.show-floor-line .ground-line {
+  display: block;
+}
+
 /* ====== DINOSAUR CHARACTER ====== */
 #dino {
   width: 80px;
   height: 90px;
   position: absolute;
-  bottom: 70px;
+  bottom: 70px; /* STANDING ON FLOOR */
   left: 80px;
   z-index: 20;
   transform-origin: bottom center;
@@ -268,59 +286,56 @@ h1 {
   100% { bottom: 70px; transform: rotate(0deg); }
 }
 
-/* ====== OBSTACLES - ALL AT BOTTOM ONLY ====== */
+/* ====== OBSTACLES - MAS MALIIT PARA MAS MADALING TALUNDAN ====== */
 .obstacle {
-  position: absolute;
-  bottom: 70px; /* LAHAT NG OBSTACLE NASA BABA LANG! */
-  transition: right 0.1s linear;
+  position: absolute !important;
+  bottom: 70px !important; /* ALL ON FLOOR */
   z-index: 10;
   pointer-events: none;
 }
 
-/* Tree Obstacle - SHORTER FOR GROUND ONLY */
+/* Tree Obstacle - MAS MALIIT */
 .tree {
-  width: 40px;
-  height: 80px; /* SHORTER - NASA GROUND LANG */
+  width: 35px;  /* MAS MALIIT */
+  height: 70px; /* MAS MAIKLI */
   background: linear-gradient(to bottom, #8B4513, #654321);
-  position: relative;
   border-radius: 5px 5px 0 0;
-  bottom: 70px !important; /* FORCED TO BOTTOM */
+  position: absolute;
 }
 
 .tree:before {
   content: '';
   position: absolute;
-  width: 60px;
-  height: 50px;
+  width: 50px;  /* MAS MALIIT */
+  height: 40px; /* MAS MALIIT */
   background: #2E7D32;
   border-radius: 50%;
-  top: -25px;
-  left: -10px;
-  box-shadow: inset 0 -10px 0 #1B5E20;
+  top: -20px;   /* MAS MALAPIT */
+  left: -8px;   /* MAS MALAPIT */
+  box-shadow: inset 0 -8px 0 #1B5E20;
 }
 
 .tree:after {
   content: '';
   position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 35px;  /* MAS MALIIT */
+  height: 35px; /* MAS MALIIT */
   background: #4CAF50;
   border-radius: 50%;
-  top: -30px;
+  top: -25px;   /* MAS MALAPIT */
   left: 0;
 }
 
-/* Rock Obstacle - ON GROUND */
+/* Rock Obstacle - MAS MALIIT */
 .rock {
-  width: 60px;
-  height: 35px; /* SHORTER - NASA GROUND */
+  width: 50px;  /* MAS MALIIT */
+  height: 30px; /* MAS MAIKLI */
   background: linear-gradient(to bottom, #808080, #696969, #505050);
-  border-radius: 10px 10px 5px 5px;
-  position: relative;
+  border-radius: 8px 8px 4px 4px; /* MAS MALIIT */
+  position: absolute;
   box-shadow: 
-    0 3px 0 #505050,
-    inset 0 -3px 0 #696969;
-  bottom: 70px !important; /* FORCED TO BOTTOM */
+    0 2px 0 #505050, /* MAS MALIIT */
+    inset 0 -2px 0 #696969;
 }
 
 .rock:before, .rock:after {
@@ -331,29 +346,28 @@ h1 {
 }
 
 .rock:before {
-  width: 15px;
-  height: 15px;
-  top: -5px;
-  left: 10px;
+  width: 12px; /* MAS MALIIT */
+  height: 12px; /* MAS MALIIT */
+  top: -4px;    /* MAS MALAPIT */
+  left: 8px;    /* MAS MALAPIT */
 }
 
 .rock:after {
-  width: 12px;
-  height: 12px;
-  top: -3px;
-  right: 15px;
+  width: 10px; /* MAS MALIIT */
+  height: 10px; /* MAS MALIIT */
+  top: -2px;    /* MAS MALAPIT */
+  right: 12px;  /* MAS MALAPIT */
 }
 
-/* River Obstacle - ON GROUND */
+/* River Obstacle - MAS MALIIT */
 .river {
-  width: 140px;
-  height: 30px; /* SHALLOWER - NASA GROUND */
+  width: 120px; /* MAS MALIIT */
+  height: 25px; /* MAS MAIKLI */
   background: linear-gradient(to bottom, #1e90ff, #4169e1, #1c5fd6);
-  position: relative;
-  border-radius: 0 0 15px 15px;
+  border-radius: 0 0 12px 12px; /* MAS MALIIT */
   overflow: hidden;
-  box-shadow: inset 0 -3px 5px rgba(0,0,0,0.3);
-  bottom: 70px !important; /* FORCED TO BOTTOM */
+  position: absolute;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3); /* MAS MALIIT */
 }
 
 .river:before {
@@ -370,60 +384,48 @@ h1 {
 .river:after {
   content: '💧';
   position: absolute;
-  font-size: 16px;
-  top: 5px;
-  left: 15px;
+  font-size: 14px; /* MAS MALIIT */
+  top: 4px;        /* MAS MALAPIT */
+  left: 12px;      /* MAS MALAPIT */
   animation: waveMove 0.8s infinite linear;
 }
 
-@keyframes riverFlow {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
-@keyframes waveMove {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-
-/* Other Dinosaur Obstacle - ON GROUND */
+/* Other Dinosaur Obstacle - MAS MALIIT */
 .other-dino {
-  width: 70px;
-  height: 60px; /* SHORTER - NASA GROUND */
-  position: relative;
+  width: 60px;  /* MAS MALIIT */
+  height: 50px; /* MAS MAIKLI */
+  position: absolute;
   animation: otherDinoMove 0.8s infinite alternate;
-  bottom: 70px !important; /* FORCED TO BOTTOM */
 }
 
 .other-dino .body {
   position: absolute;
-  width: 50px;
-  height: 35px;
+  width: 45px;  /* MAS MALIIT */
+  height: 30px; /* MAS MAIKLI */
   background: linear-gradient(to bottom, #FF5722, #D84315);
-  border-radius: 20px 20px 10px 10px;
-  left: 10px;
-  top: 15px;
-  bottom: 0;
+  border-radius: 15px 15px 8px 8px; /* MAS MALIIT */
+  left: 8px;    /* MAS MALAPIT */
+  top: 12px;    /* MAS MALAPIT */
 }
 
 .other-dino .head {
   position: absolute;
-  width: 30px;
-  height: 25px;
+  width: 25px;  /* MAS MALIIT */
+  height: 20px; /* MAS MAIKLI */
   background: #FF5722;
-  border-radius: 15px 15px 10px 10px;
-  left: 50px;
-  top: 10px;
+  border-radius: 12px 12px 8px 8px; /* MAS MALIIT */
+  left: 45px;   /* MAS MALAPIT */
+  top: 8px;     /* MAS MALAPIT */
 }
 
 .other-dino .eye {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 5px;   /* MAS MALIIT */
+  height: 5px;  /* MAS MALIIT */
   background: white;
   border-radius: 50%;
-  left: 65px;
-  top: 17px;
+  left: 60px;   /* MAS MALAPIT */
+  top: 14px;    /* MAS MALAPIT */
   box-shadow: 0 0 0 1px black;
 }
 
@@ -748,23 +750,6 @@ h1 {
 @keyframes jumpDust {
   0% { transform: scale(0.5); opacity: 1; }
   100% { transform: scale(2); opacity: 0; }
-}
-
-/* ====== COLLISION DEBUGGING ====== */
-.collision-debug {
-  position: absolute;
-  pointer-events: none;
-  z-index: 50;
-}
-
-.collision-debug.dino {
-  border: 2px solid #FF0000 !important;
-  background: rgba(255, 0, 0, 0.2) !important;
-}
-
-.collision-debug.obstacle {
-  border: 2px solid #00FF00 !important;
-  background: rgba(0, 255, 0, 0.2) !important;
 }
 
 /* ====== RESPONSIVE DESIGN ====== */
