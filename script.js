@@ -51,12 +51,12 @@ let lastJumpTime = 0;
 let gameStarted = false;
 let isInvincible = false;
 
-// ====== OBSTACLE CONFIGURATION ======
+// ====== OBSTACLE CONFIGURATION - SHORTER FOR GROUND ONLY ======
 const obstacleTypes = [
   { 
     type: 'tree', 
     width: 40, 
-    height: 120, 
+    height: 80,  // SHORTER - GROUND ONLY
     weight: 30,
     difficulty: 1.0,
     description: "Jump over the tree"
@@ -64,7 +64,7 @@ const obstacleTypes = [
   { 
     type: 'rock', 
     width: 60, 
-    height: 45, 
+    height: 35,  // SHORTER - GROUND ONLY
     weight: 35,
     difficulty: 1.1,
     description: "Jump over the rock"
@@ -72,7 +72,7 @@ const obstacleTypes = [
   { 
     type: 'river', 
     width: 140, 
-    height: 40, 
+    height: 30,  // SHALLOWER - GROUND ONLY
     weight: 20,
     difficulty: 1.8,
     requiresDoubleJump: true,
@@ -81,7 +81,7 @@ const obstacleTypes = [
   { 
     type: 'other-dino', 
     width: 70, 
-    height: 80, 
+    height: 60,  // SHORTER - GROUND ONLY
     weight: 15,
     difficulty: 1.3,
     description: "Jump over the other dinosaur"
@@ -404,11 +404,11 @@ function createObstacle(obstacleType) {
   obstacle.className = `obstacle ${obstacleType.type}`;
   obstacle.title = obstacleType.description;
   
-  // Set obstacle properties
+  // Set obstacle properties - ALL AT BOTTOM
   obstacle.style.width = `${obstacleType.width}px`;
   obstacle.style.height = `${obstacleType.height}px`;
   obstacle.style.right = `${-obstacleType.width}px`;
-  obstacle.style.bottom = '70px';
+  obstacle.style.bottom = '70px'; // ALL OBSTACLES AT GROUND LEVEL
   
   // Add specific content based on obstacle type
   if (obstacleType.type === 'other-dino') {
@@ -518,7 +518,7 @@ function gameLoop() {
   }
 }
 
-// ====== FIXED COLLISION DETECTION ======
+// ====== SIMPLE AND ACCURATE COLLISION DETECTION ======
 function checkCollision(obstacle) {
   // Get dino position
   let dinoBottom;
@@ -530,66 +530,68 @@ function checkCollision(obstacle) {
     dinoBottom = 70; // On ground
   }
   
-  // DINO HITBOX - SMALLER and MORE ACCURATE
-  const dinoHitbox = {
-    left: 95,        // 15px from left edge of visual dino
-    right: 125,      // 15px from right edge of visual dino
-    bottom: dinoBottom + 25, // Start 25px above feet
-    top: dinoBottom + 65     // End 25px below head
+  // DINO FOOT HITBOX - ONLY CHECK FEET FOR GROUND OBSTACLES
+  const dinoFootHitbox = {
+    left: 90,        // 10px from left edge
+    right: 130,      // 10px from right edge
+    bottom: dinoBottom, // Bottom of dino (feet position)
+    top: dinoBottom + 20 // 20px above feet
   };
   
-  // OBSTACLE HITBOX - EXACT obstacle position
+  // OBSTACLE HITBOX - ALL OBSTACLES ARE AT BOTTOM (70px)
   const obstacleHitbox = {
     left: 800 - obstacle.right - obstacle.width,
     right: 800 - obstacle.right,
-    bottom: 70,
+    bottom: 70, // ALL OBSTACLES AT GROUND
     top: 70 + obstacle.height
   };
   
   // DEBUG: Show hitboxes (press H to toggle)
   if (window.showHitboxes) {
-    drawHitbox(dinoHitbox, 'dino');
+    drawHitbox(dinoFootHitbox, 'dino');
     drawHitbox(obstacleHitbox, 'obstacle');
   }
   
   // SPECIAL CASE FOR RIVERS
   if (obstacle.type === 'river') {
-    // For rivers, only collide if dino is TOO LOW (not jumping enough)
-    // River needs double jump, so dino must be above 150px to clear it
-    const isInRiverHorizontally = (
-      dinoHitbox.left < obstacleHitbox.right - 10 &&  // 10px buffer
-      dinoHitbox.right > obstacleHitbox.left + 10     // 10px buffer
+    // For rivers, check if dino's FEET are in the river
+    const feetInRiver = (
+      dinoFootHitbox.left < obstacleHitbox.right - 5 &&
+      dinoFootHitbox.right > obstacleHitbox.left + 5 &&
+      dinoBottom < 120 // Must be above 120px to clear river
     );
     
-    const isTooLowForRiver = dinoBottom < 150; // Must be above 150px to clear river
-    
-    if (isInRiverHorizontally && isTooLowForRiver) {
-      console.log("💧 River hit - Dino too low! Height:", dinoBottom);
+    if (feetInRiver && dinoBottom < 120) {
+      console.log("💧 River hit - Feet in water! Height:", dinoBottom);
       return true;
     }
     return false;
   }
   
-  // REGULAR OBSTACLES (Trees, Rocks, Other Dinos)
-  // Check for ACTUAL COLLISION with generous buffers
-  const horizontalCollision = (
-    dinoHitbox.left < obstacleHitbox.right - 15 &&  // 15px buffer on right
-    dinoHitbox.right > obstacleHitbox.left + 15     // 15px buffer on left
+  // FOR ALL OTHER OBSTACLES (Trees, Rocks, Other Dinos)
+  // Check if dino's FEET hit the obstacle
+  const feetHitObstacle = (
+    dinoFootHitbox.left < obstacleHitbox.right - 10 &&  // 10px buffer
+    dinoFootHitbox.right > obstacleHitbox.left + 10 &&  // 10px buffer
+    dinoBottom < obstacleHitbox.top + 5 &&              // Feet below obstacle top
+    dinoBottom > obstacleHitbox.bottom - 5              // Feet above obstacle bottom
   );
   
-  const verticalCollision = (
-    dinoHitbox.bottom < obstacleHitbox.top - 10 &&  // 10px buffer on top
-    dinoHitbox.top > obstacleHitbox.bottom + 10     // 10px buffer on bottom
+  // Also check if dino's BODY hits tall obstacles (like trees)
+  const bodyHitObstacle = (
+    dinoFootHitbox.left < obstacleHitbox.right - 10 &&
+    dinoFootHitbox.right > obstacleHitbox.left + 10 &&
+    dinoBottom < 100 && // If dino is low (not jumping high enough)
+    obstacle.height > 50 // Only for tall obstacles
   );
   
-  // Must have BOTH horizontal and vertical collision
-  const isColliding = horizontalCollision && verticalCollision;
+  const isColliding = feetHitObstacle || bodyHitObstacle;
   
   if (isColliding) {
     console.log("💥 COLLISION! Type:", obstacle.type);
     console.log("Dino height:", dinoBottom);
-    console.log("Dino hitbox:", dinoHitbox);
-    console.log("Obstacle hitbox:", obstacleHitbox);
+    console.log("Dino feet:", dinoFootHitbox.bottom, "to", dinoFootHitbox.top);
+    console.log("Obstacle:", obstacleHitbox.bottom, "to", obstacleHitbox.top);
   }
   
   return isColliding;
@@ -885,7 +887,8 @@ window.addEventListener('load', () => {
   console.log("  A - Toggle Auto-Jump mode");
   console.log("  H - Toggle hitbox visualization (debug)");
   console.log("  Ctrl+D - Show game debug info");
-  console.log("🎯 Game starts slow and gets faster at higher levels!");
+  console.log("🎯 ALL OBSTACLES ARE AT BOTTOM ONLY!");
+  console.log("🎯 Collision only when FEET hit obstacles!");
 });
 
 // ====== DEBUG FUNCTION ======
