@@ -49,6 +49,7 @@ let obstacleGroupChance = 0.1; // Very low chance for groups at start
 let consecutiveObstacles = 0;
 let lastJumpTime = 0;
 let gameStarted = false;
+let isInvincible = false; // For after losing a life
 
 // ====== OBSTACLE CONFIGURATION ======
 const obstacleTypes = [
@@ -122,6 +123,7 @@ function initGame() {
   isGameOver = false;
   isPaused = false;
   gameStarted = false;
+  isInvincible = false;
   obstacles = [];
   lastObstacleTime = Date.now();
   
@@ -138,15 +140,16 @@ function initGame() {
   
   // Reset dino position and state
   dino.style.bottom = '70px';
+  dino.style.opacity = '1';
   dino.classList.remove('jumping', 'double-jumping', 'game-over-shake');
   
   // Create background clouds
   createClouds();
   
   // Show start message
-  showGameMessage("Get Ready! Press SPACE to Start");
+  showGameMessage("Press SPACE or CLICK to Start!");
   
-  console.log("Game initialized - Starts slow, gets faster with levels!");
+  console.log("✅ Game initialized - Ready to play!");
 }
 
 // ====== CREATE BACKGROUND CLOUDS ======
@@ -183,7 +186,7 @@ function startGame() {
   gameStarted = true;
   showGameMessage("Go!");
   
-  // Start game intervals
+  // Start game intervals immediately
   startGameIntervals();
 }
 
@@ -434,7 +437,7 @@ function jump(isDoubleJump = false) {
   // Start game on first jump if not started
   if (!gameStarted) {
     startGame();
-    return;
+    // Allow the first jump to happen
   }
   
   if (isJumping && !isDoubleJump) return;
@@ -454,6 +457,7 @@ function jump(isDoubleJump = false) {
     }, 500);
     
     lastJumpTime = currentTime;
+    addJumpEffect();
   } else if (isJumping && !isDoubleJumping && isDoubleJump) {
     // Check if it's quick enough for a double jump
     if (currentTime - lastJumpTime < 300) {
@@ -472,6 +476,17 @@ function jump(isDoubleJump = false) {
       }, 600);
     }
   }
+}
+
+// ====== ADD JUMP EFFECT ======
+function addJumpEffect() {
+  const effect = document.createElement('div');
+  effect.className = 'jump-dust';
+  effect.style.left = '75px';
+  effect.style.bottom = '65px';
+  
+  gameArea.appendChild(effect);
+  setTimeout(() => effect.remove(), 500);
 }
 
 // ====== GAME LOOP ======
@@ -495,12 +510,55 @@ function gameLoop() {
       autoJumpLogic(obstacle);
     }
     
-    // Collision detection
-    if (checkCollision(obstacle)) {
+    // Collision detection (skip if invincible)
+    if (!isInvincible && checkCollision(obstacle)) {
       handleCollision();
       return;
     }
   }
+}
+
+// ====== FIXED COLLISION DETECTION ======
+function checkCollision(obstacle) {
+  // Get dino position from CSS
+  let dinoBottom;
+  if (dino.classList.contains('double-jumping')) {
+    dinoBottom = 260; // Double jump height
+  } else if (dino.classList.contains('jumping')) {
+    dinoBottom = 190; // Normal jump height
+  } else {
+    dinoBottom = 70; // On ground
+  }
+  
+  const dinoRect = {
+    left: 80,
+    right: 140, // 80 + 60
+    bottom: dinoBottom,
+    top: dinoBottom + 90 // 90 is dino height
+  };
+  
+  const obstacleRect = {
+    left: 800 - obstacle.right - obstacle.width,
+    right: 800 - obstacle.right,
+    bottom: 70,
+    top: 70 + obstacle.height
+  };
+  
+  // For rivers, check if dino is too low
+  if (obstacle.type === 'river') {
+    return dinoRect.bottom < 100 && // Dino must be below 100px to hit river
+           dinoRect.left < obstacleRect.right &&
+           dinoRect.right > obstacleRect.left;
+  }
+  
+  // For other obstacles, check full collision with buffer
+  const buffer = 5; // 5px buffer for easier gameplay
+  return !(
+    dinoRect.left > obstacleRect.right - buffer ||
+    dinoRect.right < obstacleRect.left + buffer ||
+    dinoRect.bottom > obstacleRect.top - 10 || // More forgiving on top
+    dinoRect.top < obstacleRect.bottom + 10 // More forgiving on bottom
+  );
 }
 
 // ====== AUTO JUMP LOGIC ======
@@ -537,48 +595,10 @@ function autoJumpLogic(obstacle) {
   }
 }
 
-// ====== COLLISION DETECTION ======
-function checkCollision(obstacle) {
-  // Dino position based on jump state
-  let dinoBottom;
-  if (dino.classList.contains('double-jumping')) {
-    dinoBottom = 260; // Highest for double jump
-  } else if (dino.classList.contains('jumping')) {
-    dinoBottom = 190; // Normal jump height
-  } else {
-    dinoBottom = 70; // On ground
-  }
-  
-  const dinoRect = {
-    left: 80,
-    right: 80 + 60,
-    bottom: dinoBottom,
-    top: dinoBottom + 90
-  };
-  
-  const obstacleRect = {
-    left: 800 - obstacle.right - obstacle.width,
-    right: 800 - obstacle.right,
-    bottom: 70,
-    top: 70 + obstacle.height
-  };
-  
-  // More forgiving collision for rivers (only if dino is too low)
-  if (obstacle.type === 'river') {
-    return dinoRect.bottom < 100 && dinoRect.left < obstacleRect.right && dinoRect.right > obstacleRect.left;
-  }
-  
-  // Standard collision for other obstacles
-  return !(
-    dinoRect.left > obstacleRect.right ||
-    dinoRect.right < obstacleRect.left ||
-    dinoRect.bottom > obstacleRect.top ||
-    dinoRect.top < obstacleRect.bottom
-  );
-}
-
 // ====== HANDLE COLLISION ======
 function handleCollision() {
+  if (isInvincible) return; // Don't lose life if invincible
+  
   lives--;
   updateDisplays();
   
@@ -613,12 +633,18 @@ function continueGame() {
   obstacles.forEach(obstacle => obstacle.element.remove());
   obstacles = [];
   
-  // Brief invincibility period
-  showGameMessage("Continue! You're invincible for 2 seconds!");
+  // Set invincibility for 2 seconds
+  isInvincible = true;
+  dino.style.opacity = '0.6';
+  showGameMessage("Continue! Invincible for 2 seconds!");
   
-  // Restart game intervals after a short delay
+  // Restart game intervals
+  startGameIntervals();
+  
+  // Remove invincibility after 2 seconds
   setTimeout(() => {
-    startGameIntervals();
+    isInvincible = false;
+    dino.style.opacity = '1';
   }, 2000);
 }
 
@@ -666,10 +692,10 @@ function resumeGame() {
   isPaused = false;
   pauseModal.style.display = 'none';
   pauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-  showGameMessage("Get Ready!");
+  showGameMessage("Resuming...");
   setTimeout(() => {
     startGameIntervals();
-  }, 1000);
+  }, 500);
 }
 
 // ====== TOGGLE AUTO JUMP ======
@@ -697,21 +723,30 @@ function toggleAutoJump() {
 
 // ====== EVENT LISTENERS ======
 
-// Keyboard controls
+// Keyboard controls - FIXED
 document.addEventListener("keydown", function (e) {
+  // Prevent spacebar from scrolling page
+  if (e.code === "Space") {
+    e.preventDefault();
+  }
+  
   switch (e.code) {
     case "Space":
-      e.preventDefault();
       if (isGameOver) return;
-      if (isPaused) {
-        resumeGame();
+      
+      const currentTime = Date.now();
+      
+      // Check for double space press for double jump
+      if (isJumping && !isDoubleJumping && currentTime - lastJumpTime < 300) {
+        jump(true); // Double jump
       } else {
-        jump();
+        jump(); // Single jump or start game
       }
+      
+      lastJumpTime = currentTime;
       break;
       
     case "KeyP":
-      e.preventDefault();
       if (isGameOver || !gameStarted) return;
       if (isPaused) {
         resumeGame();
@@ -721,41 +756,32 @@ document.addEventListener("keydown", function (e) {
       break;
       
     case "KeyR":
-      e.preventDefault();
       initGame();
       break;
       
     case "KeyA":
-      e.preventDefault();
       toggleAutoJump();
       break;
   }
 });
 
-// Double jump detection
-let lastSpaceTime = 0;
-document.addEventListener("keydown", function(e) {
-  if (e.code === "Space" && isJumping && !isDoubleJumping) {
-    const now = Date.now();
-    if (now - lastSpaceTime < 300) { // Within 300ms
-      jump(true);
-    }
-    lastSpaceTime = now;
-  }
-});
-
-// Click controls
+// Click controls - FIXED
 let lastClickTime = 0;
 gameArea.addEventListener("click", function(e) {
+  // Don't jump when clicking buttons or modals
+  if (e.target.closest('.control-btn') || e.target.closest('.modal')) {
+    return;
+  }
+  
   if (isGameOver || isPaused) return;
   
   const currentTime = Date.now();
   
   // Check for double click (within 300ms)
-  if (currentTime - lastClickTime < 300 && isJumping) {
+  if (currentTime - lastClickTime < 300 && isJumping && !isDoubleJumping) {
     jump(true); // Double jump
   } else {
-    jump(); // Single jump
+    jump(); // Single jump or start game
   }
   
   lastClickTime = currentTime;
@@ -780,39 +806,33 @@ continueBtn.addEventListener("click", continueGame);
 window.addEventListener('load', () => {
   initGame();
   updateDisplays();
+  
+  console.log("🎮 Dino Dash: Jurassic Adventure Loaded!");
+  console.log("📱 Controls: SPACE to jump, P to pause, R to restart, A for auto-jump");
+  console.log("🎯 Game starts slow and gets faster at higher levels!");
 });
 
-// ====== ADD JUMP DUST EFFECT ======
-function addJumpEffect() {
-  const effect = document.createElement('div');
-  effect.style.cssText = `
-    position: absolute;
-    width: 60px;
-    height: 20px;
-    background: rgba(233, 196, 106, 0.3);
-    border-radius: 50%;
-    bottom: 65px;
-    left: 75px;
-    animation: jumpDust 0.5s forwards;
-    z-index: 5;
-  `;
-  
-  document.styleSheets[0].insertRule(`
-    @keyframes jumpDust {
-      0% { transform: scale(0.5); opacity: 1; }
-      100% { transform: scale(2); opacity: 0; }
-    }
-  `, 0);
-  
-  gameArea.appendChild(effect);
-  setTimeout(() => effect.remove(), 500);
+// ====== DEBUG FUNCTION ======
+function debugGame() {
+  console.log("=== GAME DEBUG ===");
+  console.log("Game Started:", gameStarted);
+  console.log("Game Paused:", isPaused);
+  console.log("Game Over:", isGameOver);
+  console.log("Is Jumping:", isJumping);
+  console.log("Is Double Jumping:", isDoubleJumping);
+  console.log("Is Invincible:", isInvincible);
+  console.log("Lives:", lives);
+  console.log("Score:", score);
+  console.log("Level:", level);
+  console.log("Game Speed:", gameSpeed);
+  console.log("Active Obstacles:", obstacles.length);
+  console.log("Obstacle Spawn Delay:", obstacleSpawnDelay);
+  console.log("==================");
 }
 
-// Add jump effect when jumping
-const originalJump = jump;
-jump = function(isDoubleJump) {
-  originalJump.call(this, isDoubleJump);
-  if (!isDoubleJump) {
-    addJumpEffect();
+// Add debug hotkey (Ctrl+D)
+document.addEventListener("keydown", function(e) {
+  if (e.code === "KeyD" && e.ctrlKey) {
+    debugGame();
   }
-};
+});
