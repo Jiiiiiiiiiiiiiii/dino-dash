@@ -12,7 +12,7 @@
   <div class="container">
     <header>
       <h1><i class="fas fa-dragon"></i> Dino Dash Enhanced <i class="fas fa-dragon"></i></h1>
-      <p class="subtitle">Press <strong>SPACE</strong> or <strong>CLICK</strong> to jump • <strong>P</strong> to pause</p>
+      <p class="subtitle">Press <strong>SPACE</strong> or <strong>CLICK</strong> to jump • <strong>P</strong> to pause • <strong>Double-click</strong> for rivers!</p>
     </header>
 
     <div class="game-info">
@@ -33,6 +33,10 @@
           <i class="fas fa-bolt"></i>
           <span>Speed: <span id="speed">1x</span></span>
         </div>
+        <div class="info-box">
+          <i class="fas fa-mountain"></i>
+          <span>Difficulty: <span id="difficulty-text">Normal</span></span>
+        </div>
       </div>
 
       <div class="controls">
@@ -52,46 +56,92 @@
       <div class="game" id="game-area">
         <div id="dino"></div>
         <!-- Obstacles will be dynamically added here -->
+        <div class="game-state" id="game-state">Ready!</div>
       </div>
       
       <div class="obstacle-legend">
         <div class="legend-item">
           <div class="legend-cactus"></div>
-          <span>Cactus</span>
+          <span>Cactus (Single Jump)</span>
         </div>
         <div class="legend-item">
           <div class="legend-rock"></div>
-          <span>Rock</span>
+          <span>Rock (Single Jump)</span>
         </div>
         <div class="legend-item">
           <div class="legend-river"></div>
-          <span>River</span>
+          <span>River (Double Jump!)</span>
         </div>
         <div class="legend-item">
           <div class="legend-other-dino"></div>
-          <span>Other Dino</span>
+          <span>Other Dino (Single Jump)</span>
         </div>
       </div>
     </div>
 
     <div class="instructions">
-      <h3><i class="fas fa-info-circle"></i> Game Features</h3>
-      <ul>
-        <li>Press <strong>SPACE</strong> or <strong>CLICK</strong> to jump over obstacles</li>
-        <li>Press <strong>P</strong> to pause/resume the game</li>
-        <li>Enable <strong>Auto-Jump</strong> to let the AI play for you</li>
-        <li>Game speed increases every 100 points</li>
-        <li>Avoid 4 types of obstacles: cactus, rock, river, and other dinosaurs</li>
-        <li>Rivers require a double jump to cross</li>
-      </ul>
+      <h3><i class="fas fa-info-circle"></i> How to Play & Features</h3>
+      <div class="instructions-grid">
+        <div class="instruction-card">
+          <h4><i class="fas fa-gamepad"></i> Controls</h4>
+          <ul>
+            <li><strong>SPACE</strong> or <strong>CLICK</strong> - Jump</li>
+            <li><strong>Double SPACE/CLICK</strong> - Double jump for rivers</li>
+            <li><strong>P key</strong> - Pause/Resume game</li>
+            <li><strong>R key</strong> - Restart game</li>
+          </ul>
+        </div>
+        <div class="instruction-card">
+          <h4><i class="fas fa-bullseye"></i> Obstacles</h4>
+          <ul>
+            <li><span class="obstacle-icon cactus"></span> Cactus - Single jump</li>
+            <li><span class="obstacle-icon rock"></span> Rock - Single jump</li>
+            <li><span class="obstacle-icon river"></span> River - Double jump required!</li>
+            <li><span class="obstacle-icon other-dino"></span> Other Dino - Single jump</li>
+          </ul>
+        </div>
+        <div class="instruction-card">
+          <h4><i class="fas fa-chart-line"></i> Game Features</h4>
+          <ul>
+            <li>Progressive difficulty system</li>
+            <li>Smart obstacle spawning</li>
+            <li>Auto-jump AI learning mode</li>
+            <li>Level-based speed increase</li>
+            <li>High score saved locally</li>
+          </ul>
+        </div>
+        <div class="instruction-card">
+          <h4><i class="fas fa-lightbulb"></i> Tips</h4>
+          <ul>
+            <li>Rivers need quick double jumps</li>
+            <li>Watch for obstacle patterns</li>
+            <li>Use Auto-Jump to learn timing</li>
+            <li>Take breaks with pause feature</li>
+            <li>Higher levels = more points!</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="game-over" class="modal">
     <div class="modal-content">
       <h2><i class="fas fa-skull-crossbones"></i> Game Over!</h2>
-      <p>Your score: <span id="final-score">0</span></p>
-      <p>Level reached: <span id="final-level">1</span></p>
+      <div class="stats">
+        <div class="stat-item">
+          <i class="fas fa-star"></i>
+          <span>Final Score: <strong id="final-score">0</strong></span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-layer-group"></i>
+          <span>Level Reached: <strong id="final-level">1</strong></span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-trophy"></i>
+          <span>High Score: <strong id="final-high-score">0</strong></span>
+        </div>
+      </div>
+      <p id="game-over-tip" class="tip">Tip: Rivers require double jumps!</p>
       <button id="play-again-btn" class="play-again-btn">
         <i class="fas fa-play"></i> Play Again
       </button>
@@ -101,8 +151,20 @@
   <div id="pause-modal" class="modal">
     <div class="modal-content">
       <h2><i class="fas fa-pause-circle"></i> Game Paused</h2>
-      <p>Score: <span id="paused-score">0</span></p>
-      <p>Level: <span id="paused-level">1</span></p>
+      <div class="stats">
+        <div class="stat-item">
+          <i class="fas fa-star"></i>
+          <span>Current Score: <strong id="paused-score">0</strong></span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-layer-group"></i>
+          <span>Current Level: <strong id="paused-level">1</strong></span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-bolt"></i>
+          <span>Game Speed: <strong id="paused-speed">1x</strong></span>
+        </div>
+      </div>
       <button id="resume-btn" class="play-again-btn">
         <i class="fas fa-play"></i> Resume
       </button>
