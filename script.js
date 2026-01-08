@@ -5,22 +5,26 @@ const scoreDisplay = document.getElementById("score");
 const highScoreDisplay = document.getElementById("high-score");
 const levelDisplay = document.getElementById("level");
 const speedDisplay = document.getElementById("speed");
-const difficultyText = document.getElementById("difficulty-text");
+const livesDisplay = document.getElementById("lives");
 const autoStatusDisplay = document.getElementById("auto-status");
 const autoBtn = document.getElementById("auto-btn");
 const pauseBtn = document.getElementById("pause-btn");
 const restartBtn = document.getElementById("restart-btn");
 const gameOverModal = document.getElementById("game-over");
 const pauseModal = document.getElementById("pause-modal");
+const lifeLostModal = document.getElementById("life-lost-modal");
 const finalScoreDisplay = document.getElementById("final-score");
 const finalLevelDisplay = document.getElementById("final-level");
 const finalHighScoreDisplay = document.getElementById("final-high-score");
 const pausedScoreDisplay = document.getElementById("paused-score");
 const pausedLevelDisplay = document.getElementById("paused-level");
-const pausedSpeedDisplay = document.getElementById("paused-speed");
+const pausedLivesDisplay = document.getElementById("paused-lives");
+const remainingLivesDisplay = document.getElementById("remaining-lives");
+const lifeLostScoreDisplay = document.getElementById("life-lost-score");
 const gameOverTip = document.getElementById("game-over-tip");
 const playAgainBtn = document.getElementById("play-again-btn");
 const resumeBtn = document.getElementById("resume-btn");
+const continueBtn = document.getElementById("continue-btn");
 const gameStateIndicator = document.getElementById("game-state");
 
 // ====== GAME VARIABLES ======
@@ -28,7 +32,7 @@ let score = 0;
 let highScore = localStorage.getItem("dinoHighScore") || 0;
 let level = 1;
 let gameSpeed = 1;
-let difficulty = "Normal";
+let lives = 3;
 let isJumping = false;
 let isDoubleJumping = false;
 let isPaused = false;
@@ -38,77 +42,72 @@ let gameInterval;
 let obstacleInterval;
 let scoreInterval;
 let obstacles = [];
-let jumpHeight = 120;
-let riverJumpHeight = 70;
 let lastObstacleTime = 0;
-let obstacleSpawnDelay = 1800; // Initial spawn delay (ms)
-let minSpawnDelay = 900; // Minimum spawn delay at high levels
-let obstacleGroupChance = 0.2; // Initial chance for grouped obstacles
-let obstacleGroupSize = 2; // Default group size
-let consecutiveObstacles = 0; // Track consecutive obstacles
-let lastDoubleJumpTime = 0;
+let obstacleSpawnDelay = 2000; // Start with slow spawn (2 seconds)
+let minSpawnDelay = 800; // Minimum spawn delay at high levels
+let obstacleGroupChance = 0.1; // Very low chance for groups at start
+let consecutiveObstacles = 0;
+let lastJumpTime = 0;
+let gameStarted = false;
 
 // ====== OBSTACLE CONFIGURATION ======
 const obstacleTypes = [
   { 
-    type: 'cactus', 
-    width: 25, 
-    height: 60, 
-    color: '#8B4513', 
-    weight: 40, // Higher weight = more common
-    difficulty: 1,
-    description: "Single jump"
+    type: 'tree', 
+    width: 40, 
+    height: 120, 
+    weight: 30,
+    difficulty: 1.0,
+    description: "Jump over the tree"
   },
   { 
     type: 'rock', 
-    width: 50, 
-    height: 40, 
-    color: '#808080', 
+    width: 60, 
+    height: 45, 
     weight: 35,
     difficulty: 1.1,
-    description: "Single jump"
+    description: "Jump over the rock"
   },
   { 
     type: 'river', 
-    width: 120, 
-    height: 30, 
-    color: '#1e90ff', 
-    weight: 15,
+    width: 140, 
+    height: 40, 
+    weight: 20,
     difficulty: 1.8,
     requiresDoubleJump: true,
-    description: "Double jump required!"
+    description: "Double jump over the river!"
   },
   { 
     type: 'other-dino', 
-    width: 50, 
-    height: 60, 
-    color: '#FF5722', 
-    weight: 10,
+    width: 70, 
+    height: 80, 
+    weight: 15,
     difficulty: 1.3,
-    description: "Single jump"
+    description: "Jump over the other dinosaur"
   }
+];
+
+// ====== SPEED LEVELS ======
+const speedLevels = [
+  { level: 1, name: "Very Slow", multiplier: 1.0 },
+  { level: 2, name: "Slow", multiplier: 1.2 },
+  { level: 3, name: "Normal", multiplier: 1.5 },
+  { level: 5, name: "Fast", multiplier: 1.8 },
+  { level: 8, name: "Very Fast", multiplier: 2.2 },
+  { level: 12, name: "Extreme", multiplier: 2.8 },
+  { level: 15, name: "Lightning", multiplier: 3.5 }
 ];
 
 // ====== GAME TIPS ======
 const gameTips = [
-  "Tip: Rivers require quick double jumps!",
-  "Tip: Watch for obstacle patterns and rhythm",
-  "Tip: Use Auto-Jump mode to learn timing",
-  "Tip: Higher levels give more points per second",
-  "Tip: Take breaks with the pause feature",
-  "Tip: Practice makes perfect!",
-  "Tip: Obstacles come in predictable patterns",
-  "Tip: Don't panic at obstacle groups - keep rhythm"
-];
-
-// ====== DIFFICULTY LEVELS ======
-const difficultyLevels = [
-  { level: 1, name: "Very Easy", color: "#4CAF50" },
-  { level: 3, name: "Easy", color: "#8BC34A" },
-  { level: 5, name: "Normal", color: "#FFC107" },
-  { level: 8, name: "Hard", color: "#FF9800" },
-  { level: 12, name: "Very Hard", color: "#F44336" },
-  { level: 15, name: "Expert", color: "#9C27B0" }
+  "The game starts slow - learn the timing!",
+  "Rivers need quick double jumps",
+  "Speed increases at higher levels",
+  "You have 3 lives - be careful!",
+  "Watch for patterns in obstacles",
+  "Use Auto mode to practice timing",
+  "Higher levels = faster gameplay",
+  "Take your time, no need to rush!"
 ];
 
 // ====== INITIALIZE GAME ======
@@ -116,40 +115,76 @@ function initGame() {
   score = 0;
   level = 1;
   gameSpeed = 1;
-  difficulty = "Normal";
-  obstacleSpawnDelay = 1800;
-  obstacleGroupChance = 0.2;
-  obstacleGroupSize = 2;
+  lives = 3;
+  obstacleSpawnDelay = 2000;
+  obstacleGroupChance = 0.1;
   consecutiveObstacles = 0;
   isGameOver = false;
   isPaused = false;
+  gameStarted = false;
   obstacles = [];
   lastObstacleTime = Date.now();
   
-  // Clear all obstacles
-  const existingObstacles = document.querySelectorAll('.obstacle');
-  existingObstacles.forEach(obstacle => obstacle.remove());
+  // Clear all obstacles and clouds
+  document.querySelectorAll('.obstacle, .cloud').forEach(el => el.remove());
   
   // Update displays
   updateDisplays();
   
-  // Hide modals
+  // Hide all modals
   gameOverModal.style.display = 'none';
   pauseModal.style.display = 'none';
+  lifeLostModal.style.display = 'none';
   
-  // Reset dino position
-  dino.style.bottom = '5px';
-  dino.classList.remove('jumping', 'double-jumping');
+  // Reset dino position and state
+  dino.style.bottom = '70px';
+  dino.classList.remove('jumping', 'double-jumping', 'game-over-shake');
+  
+  // Create background clouds
+  createClouds();
   
   // Show start message
-  showGameMessage("Ready? Go!");
+  showGameMessage("Get Ready! Press SPACE to Start");
+  
+  console.log("Game initialized - Starts slow, gets faster with levels!");
+}
+
+// ====== CREATE BACKGROUND CLOUDS ======
+function createClouds() {
+  for (let i = 0; i < 5; i++) {
+    const cloud = document.createElement('div');
+    cloud.className = 'cloud';
+    
+    // Random cloud properties
+    const size = 40 + Math.random() * 60;
+    const top = 30 + Math.random() * 100;
+    const left = Math.random() * 800;
+    const speed = 40 + Math.random() * 40;
+    const opacity = 0.3 + Math.random() * 0.4;
+    
+    cloud.style.width = `${size}px`;
+    cloud.style.height = `${size / 2}px`;
+    cloud.style.top = `${top}px`;
+    cloud.style.left = `${left}px`;
+    cloud.style.opacity = `${opacity}`;
+    cloud.style.animationDuration = `${speed}s`;
+    
+    // Cloud details
+    cloud.style.borderRadius = '50px';
+    
+    gameArea.appendChild(cloud);
+  }
+}
+
+// ====== START GAME ======
+function startGame() {
+  if (gameStarted) return;
+  
+  gameStarted = true;
+  showGameMessage("Go!");
   
   // Start game intervals
-  setTimeout(() => {
-    startGameIntervals();
-  }, 1500);
-  
-  console.log("Game initialized with balanced difficulty!");
+  startGameIntervals();
 }
 
 // ====== START GAME INTERVALS ======
@@ -157,24 +192,24 @@ function startGameIntervals() {
   // Clear existing intervals
   clearIntervals();
   
-  // Score interval
+  // Score interval - increases every 200ms
   scoreInterval = setInterval(() => {
-    if (!isPaused && !isGameOver) {
-      score += Math.floor(level / 2) + 1; // Higher levels give more points
+    if (!isPaused && !isGameOver && gameStarted) {
+      score += 1;
       updateDisplays();
-      updateLevelAndDifficulty();
+      updateLevelAndSpeed();
     }
   }, 200);
   
-  // Obstacle generation interval (checks every 100ms)
+  // Obstacle generation interval
   obstacleInterval = setInterval(() => {
-    if (!isPaused && !isGameOver) {
+    if (!isPaused && !isGameOver && gameStarted) {
       generateObstacleWithLogic();
     }
   }, 100);
   
   // Game loop for collision detection and auto-jump
-  gameInterval = setInterval(gameLoop, 16); // ~60fps
+  gameInterval = setInterval(gameLoop, 16);
 }
 
 // ====== CLEAR INTERVALS ======
@@ -189,41 +224,50 @@ function updateDisplays() {
   scoreDisplay.textContent = score;
   highScoreDisplay.textContent = highScore;
   levelDisplay.textContent = level;
-  speedDisplay.textContent = gameSpeed.toFixed(1) + 'x';
-  difficultyText.textContent = difficulty;
-  difficultyText.style.color = getDifficultyColor();
+  livesDisplay.textContent = lives;
   autoStatusDisplay.textContent = autoJumpEnabled ? 'ON' : 'OFF';
+  
+  // Update speed display based on current level
+  const speedLevel = speedLevels.reduce((current, speed) => 
+    level >= speed.level ? speed : current, speedLevels[0]
+  );
+  speedDisplay.textContent = speedLevel.name;
+  speedDisplay.style.color = getSpeedColor(level);
+  
+  // Update auto button color
   autoBtn.style.background = autoJumpEnabled 
     ? 'linear-gradient(to right, #4CAF50, #2E7D32)' 
-    : 'linear-gradient(to right, #ff7e5f, #feb47b)';
+    : 'linear-gradient(to right, #e76f51, #f4a261)';
 }
 
-// ====== GET DIFFICULTY COLOR ======
-function getDifficultyColor() {
-  for (let i = difficultyLevels.length - 1; i >= 0; i--) {
-    if (level >= difficultyLevels[i].level) {
-      return difficultyLevels[i].color;
-    }
-  }
-  return "#FFC107"; // Default to Normal color
+// ====== GET SPEED COLOR ======
+function getSpeedColor(level) {
+  if (level < 3) return '#4CAF50'; // Green for slow
+  if (level < 6) return '#FFC107'; // Yellow for normal
+  if (level < 10) return '#FF9800'; // Orange for fast
+  return '#F44336'; // Red for very fast
 }
 
-// ====== UPDATE LEVEL & DIFFICULTY ======
-function updateLevelAndDifficulty() {
+// ====== UPDATE LEVEL & SPEED ======
+function updateLevelAndSpeed() {
   const newLevel = Math.floor(score / 100) + 1;
+  
   if (newLevel > level) {
     level = newLevel;
     
-    // Progressive difficulty scaling
-    gameSpeed = 1 + (level * 0.12); // Gradual speed increase
-    obstacleSpawnDelay = Math.max(minSpawnDelay, 1800 - (level * 40)); // Gradual spawn delay decrease
-    obstacleGroupChance = Math.min(0.5, 0.2 + (level * 0.02)); // Increase group chance
-    obstacleGroupSize = Math.min(4, 2 + Math.floor(level / 6)); // Increase max group size
-    
-    // Update difficulty name
-    difficulty = difficultyLevels.reduce((current, diff) => 
-      level >= diff.level ? diff.name : current, "Normal"
+    // PROGRESSIVE DIFFICULTY: Game gets faster with higher levels
+    const speedLevel = speedLevels.reduce((current, speed) => 
+      level >= speed.level ? speed : current, speedLevels[0]
     );
+    
+    // Update game speed based on level
+    gameSpeed = speedLevel.multiplier;
+    
+    // Gradually decrease spawn delay (makes obstacles come faster)
+    obstacleSpawnDelay = Math.max(minSpawnDelay, 2000 - (level * 80));
+    
+    // Slightly increase chance for obstacle groups
+    obstacleGroupChance = Math.min(0.4, 0.1 + (level * 0.02));
     
     showLevelUpMessage();
     updateDisplays();
@@ -232,12 +276,16 @@ function updateLevelAndDifficulty() {
 
 // ====== SHOW LEVEL UP MESSAGE ======
 function showLevelUpMessage() {
-  showGameMessage(`Level ${level}! ${difficulty}`);
+  const speedLevel = speedLevels.reduce((current, speed) => 
+    level >= speed.level ? speed : current, speedLevels[0]
+  );
+  
+  showGameMessage(`Level ${level}! Speed: ${speedLevel.name}`);
   
   // Create score popup
   const popup = document.createElement('div');
   popup.className = 'score-popup';
-  popup.textContent = `+100!`;
+  popup.textContent = `Level Up!`;
   popup.style.left = '50%';
   popup.style.top = '50%';
   gameArea.appendChild(popup);
@@ -269,19 +317,15 @@ function generateObstacleWithLogic() {
     return;
   }
   
-  lastObstacleTime = currentTime;
+  // Give breaks between obstacles (especially at early levels)
   consecutiveObstacles++;
-  
-  // Every 5 obstacles, give a break
-  if (consecutiveObstacles >= 5) {
+  if (consecutiveObstacles >= (level < 5 ? 3 : 5)) {
     consecutiveObstacles = 0;
-    setTimeout(() => {
-      if (!isPaused && !isGameOver) {
-        lastObstacleTime = Date.now() + 1000; // Extra break
-      }
-    }, 0);
+    lastObstacleTime = Date.now() + 1000; // Give a 1-second break
     return;
   }
+  
+  lastObstacleTime = currentTime;
   
   // Decide if we should spawn a group or single obstacle
   const shouldSpawnGroup = Math.random() < obstacleGroupChance && level > 3;
@@ -301,8 +345,10 @@ function hasSpaceForNewObstacle() {
   const lastObstacleRight = lastObstacle.right;
   const lastObstacleWidth = lastObstacle.width;
   
-  // Calculate safe distance based on level and game speed
-  const safeDistance = 350 - (level * 15) + (gameSpeed * 40);
+  // Calculate safe distance - more space at lower levels
+  const safeDistance = level < 5 ? 400 : 
+                      level < 10 ? 350 : 
+                      300 - (level * 5);
   
   // Only spawn new obstacle if last one is far enough
   return lastObstacleRight > safeDistance;
@@ -323,19 +369,16 @@ function spawnSingleObstacle() {
     }
   }
   
-  // Avoid rivers if we just had one
-  if (selectedType.type === 'river' && Date.now() - lastDoubleJumpTime < 5000) {
-    // Pick a different obstacle
-    selectedType = obstacleTypes.find(t => t.type !== 'river') || obstacleTypes[0];
-  }
-  
   createObstacle(selectedType);
 }
 
 // ====== SPAWN OBSTACLE GROUP ======
 function spawnObstacleGroup() {
-  const groupSize = Math.min(obstacleGroupSize, Math.floor(Math.random() * 3) + 2);
-  const types = ['cactus', 'rock']; // Simpler obstacles for groups
+  // Only small groups at lower levels
+  const groupSize = level < 8 ? 2 : 
+                    level < 12 ? 3 : 4;
+  
+  const types = ['tree', 'rock']; // Only simple obstacles for groups
   
   for (let i = 0; i < groupSize; i++) {
     const typeName = types[Math.floor(Math.random() * types.length)];
@@ -344,10 +387,10 @@ function spawnObstacleGroup() {
     if (obstacleType) {
       // Stagger obstacles in group
       setTimeout(() => {
-        if (!isPaused && !isGameOver && hasSpaceForNewObstacle()) {
+        if (!isPaused && !isGameOver && gameStarted && hasSpaceForNewObstacle()) {
           createObstacle(obstacleType);
         }
-      }, i * 250); // Small delay between obstacles in group
+      }, i * 300); // Small delay between obstacles in group
     }
   }
 }
@@ -361,9 +404,17 @@ function createObstacle(obstacleType) {
   // Set obstacle properties
   obstacle.style.width = `${obstacleType.width}px`;
   obstacle.style.height = `${obstacleType.height}px`;
-  obstacle.style.backgroundColor = obstacleType.color;
   obstacle.style.right = `${-obstacleType.width}px`;
-  obstacle.style.bottom = '5px';
+  obstacle.style.bottom = '70px';
+  
+  // Add specific content based on obstacle type
+  if (obstacleType.type === 'other-dino') {
+    obstacle.innerHTML = `
+      <div class="body"></div>
+      <div class="head"></div>
+      <div class="eye"></div>
+    `;
+  }
   
   // Add to game area and obstacles array
   gameArea.appendChild(obstacle);
@@ -373,29 +424,22 @@ function createObstacle(obstacleType) {
     width: obstacleType.width,
     height: obstacleType.height,
     right: -obstacleType.width,
-    speed: obstacleType.difficulty * gameSpeed * 4.5,
+    speed: obstacleType.difficulty * gameSpeed * 3,
     requiresDoubleJump: obstacleType.requiresDoubleJump || false
   });
-  
-  // Add warning for rivers
-  if (obstacleType.type === 'river') {
-    addRiverWarning(obstacle);
-  }
-}
-
-// ====== ADD RIVER WARNING ======
-function addRiverWarning(obstacle) {
-  const warning = document.createElement('div');
-  warning.className = 'obstacle-warning';
-  warning.textContent = '⚠️';
-  warning.style.right = '0px';
-  warning.style.top = '50%';
-  obstacle.appendChild(warning);
 }
 
 // ====== JUMP FUNCTION ======
 function jump(isDoubleJump = false) {
+  // Start game on first jump if not started
+  if (!gameStarted) {
+    startGame();
+    return;
+  }
+  
   if (isJumping && !isDoubleJump) return;
+  
+  const currentTime = Date.now();
   
   if (!isJumping) {
     // First jump
@@ -408,27 +452,31 @@ function jump(isDoubleJump = false) {
       isJumping = false;
       isDoubleJumping = false;
     }, 500);
-  } else if (isJumping && !isDoubleJumping && isDoubleJump) {
-    // Double jump (for rivers)
-    isDoubleJumping = true;
-    lastDoubleJumpTime = Date.now();
-    dino.classList.remove('jumping');
-    dino.classList.add('double-jumping');
     
-    // Reset after double jump
-    setTimeout(() => {
-      dino.classList.remove('double-jumping');
+    lastJumpTime = currentTime;
+  } else if (isJumping && !isDoubleJumping && isDoubleJump) {
+    // Check if it's quick enough for a double jump
+    if (currentTime - lastJumpTime < 300) {
+      // Double jump (for rivers)
+      isDoubleJumping = true;
+      dino.classList.remove('jumping');
+      dino.classList.add('double-jumping');
+      
+      // Reset after double jump
       setTimeout(() => {
-        isJumping = false;
-        isDoubleJumping = false;
-      }, 300);
-    }, 600);
+        dino.classList.remove('double-jumping');
+        setTimeout(() => {
+          isJumping = false;
+          isDoubleJumping = false;
+        }, 300);
+      }, 600);
+    }
   }
 }
 
 // ====== GAME LOOP ======
 function gameLoop() {
-  if (isPaused || isGameOver) return;
+  if (isPaused || isGameOver || !gameStarted) return;
   
   // Move obstacles
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -449,7 +497,7 @@ function gameLoop() {
     
     // Collision detection
     if (checkCollision(obstacle)) {
-      gameOver();
+      handleCollision();
       return;
     }
   }
@@ -467,15 +515,18 @@ function autoJumpLogic(obstacle) {
   const distanceToObstacle = 800 - obstacleRight - obstacleWidth - dinoLeft;
   
   // Jump based on obstacle type and distance
-  if (distanceToObstacle > 0 && distanceToObstacle < 130) {
-    if (obstacleType === 'river' && distanceToObstacle < 90 && !isDoubleJumping) {
+  if (distanceToObstacle > 0 && distanceToObstacle < 150) {
+    if (obstacleType === 'river' && distanceToObstacle < 100 && !isDoubleJumping) {
       // Double jump for rivers
       setTimeout(() => {
-        if (!isDoubleJumping) {
+        if (!isDoubleJumping && isJumping) {
           jump(true);
+        } else if (!isJumping) {
+          jump();
+          setTimeout(() => jump(true), 150);
         }
       }, 50);
-    } else if (obstacleType !== 'river' && distanceToObstacle < 100 && !isJumping) {
+    } else if (obstacleType !== 'river' && distanceToObstacle < 120 && !isJumping) {
       // Single jump for other obstacles
       setTimeout(() => {
         if (!isJumping) {
@@ -488,25 +539,33 @@ function autoJumpLogic(obstacle) {
 
 // ====== COLLISION DETECTION ======
 function checkCollision(obstacle) {
+  // Dino position based on jump state
+  let dinoBottom;
+  if (dino.classList.contains('double-jumping')) {
+    dinoBottom = 260; // Highest for double jump
+  } else if (dino.classList.contains('jumping')) {
+    dinoBottom = 190; // Normal jump height
+  } else {
+    dinoBottom = 70; // On ground
+  }
+  
   const dinoRect = {
     left: 80,
     right: 80 + 60,
-    bottom: dino.classList.contains('jumping') ? 125 : 
-            dino.classList.contains('double-jumping') ? 195 : 5,
-    top: (dino.classList.contains('jumping') ? 125 : 
-          dino.classList.contains('double-jumping') ? 195 : 5) + 70
+    bottom: dinoBottom,
+    top: dinoBottom + 90
   };
   
   const obstacleRect = {
     left: 800 - obstacle.right - obstacle.width,
     right: 800 - obstacle.right,
-    bottom: 5,
-    top: obstacle.height + 5
+    bottom: 70,
+    top: 70 + obstacle.height
   };
   
   // More forgiving collision for rivers (only if dino is too low)
   if (obstacle.type === 'river') {
-    return dinoRect.bottom < 40 && dinoRect.left < obstacleRect.right && dinoRect.right > obstacleRect.left;
+    return dinoRect.bottom < 100 && dinoRect.left < obstacleRect.right && dinoRect.right > obstacleRect.left;
   }
   
   // Standard collision for other obstacles
@@ -516,6 +575,51 @@ function checkCollision(obstacle) {
     dinoRect.bottom > obstacleRect.top ||
     dinoRect.top < obstacleRect.bottom
   );
+}
+
+// ====== HANDLE COLLISION ======
+function handleCollision() {
+  lives--;
+  updateDisplays();
+  
+  // Shake animation
+  gameArea.classList.add('game-over-shake');
+  setTimeout(() => gameArea.classList.remove('game-over-shake'), 500);
+  
+  if (lives <= 0) {
+    gameOver();
+  } else {
+    showLifeLostModal();
+  }
+}
+
+// ====== SHOW LIFE LOST MODAL ======
+function showLifeLostModal() {
+  isPaused = true;
+  clearIntervals();
+  
+  remainingLivesDisplay.textContent = lives;
+  lifeLostScoreDisplay.textContent = score;
+  
+  lifeLostModal.style.display = 'flex';
+}
+
+// ====== CONTINUE AFTER LIFE LOST ======
+function continueGame() {
+  lifeLostModal.style.display = 'none';
+  isPaused = false;
+  
+  // Clear current obstacles
+  obstacles.forEach(obstacle => obstacle.element.remove());
+  obstacles = [];
+  
+  // Brief invincibility period
+  showGameMessage("Continue! You're invincible for 2 seconds!");
+  
+  // Restart game intervals after a short delay
+  setTimeout(() => {
+    startGameIntervals();
+  }, 2000);
 }
 
 // ====== GAME OVER ======
@@ -541,20 +645,18 @@ function gameOver() {
   setTimeout(() => {
     gameOverModal.style.display = 'flex';
   }, 500);
-  
-  // Add shake animation to game area
-  gameArea.classList.add('game-over');
-  setTimeout(() => gameArea.classList.remove('game-over'), 500);
 }
 
 // ====== PAUSE GAME ======
 function pauseGame() {
+  if (!gameStarted || isGameOver) return;
+  
   isPaused = true;
   clearIntervals();
   pauseModal.style.display = 'flex';
   pausedScoreDisplay.textContent = score;
   pausedLevelDisplay.textContent = level;
-  pausedSpeedDisplay.textContent = gameSpeed.toFixed(1) + 'x';
+  pausedLivesDisplay.textContent = lives;
   pauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
   showGameMessage("Game Paused");
 }
@@ -587,7 +689,7 @@ function toggleAutoJump() {
   indicator.style.display = autoJumpEnabled ? 'block' : 'none';
   
   if (autoJumpEnabled) {
-    showGameMessage("AI Auto-Jump Enabled");
+    showGameMessage("AI Auto-Jump Enabled - Watch and Learn!");
   }
   
   updateDisplays();
@@ -610,7 +712,7 @@ document.addEventListener("keydown", function (e) {
       
     case "KeyP":
       e.preventDefault();
-      if (isGameOver) return;
+      if (isGameOver || !gameStarted) return;
       if (isPaused) {
         resumeGame();
       } else {
@@ -628,37 +730,41 @@ document.addEventListener("keydown", function (e) {
       toggleAutoJump();
       break;
   }
-  
-  // Quick double jump for rivers (press space twice quickly)
+});
+
+// Double jump detection
+let lastSpaceTime = 0;
+document.addEventListener("keydown", function(e) {
   if (e.code === "Space" && isJumping && !isDoubleJumping) {
     const now = Date.now();
-    if (now - lastDoubleJumpTime < 300) { // Within 300ms
+    if (now - lastSpaceTime < 300) { // Within 300ms
       jump(true);
     }
-    lastDoubleJumpTime = now;
+    lastSpaceTime = now;
   }
 });
 
 // Click controls
+let lastClickTime = 0;
 gameArea.addEventListener("click", function(e) {
   if (isGameOver || isPaused) return;
   
   const currentTime = Date.now();
   
   // Check for double click (within 300ms)
-  if (currentTime - lastDoubleJumpTime < 300 && isJumping) {
+  if (currentTime - lastClickTime < 300 && isJumping) {
     jump(true); // Double jump
   } else {
     jump(); // Single jump
   }
   
-  lastDoubleJumpTime = currentTime;
+  lastClickTime = currentTime;
 });
 
 // Control buttons
 autoBtn.addEventListener("click", toggleAutoJump);
 pauseBtn.addEventListener("click", function() {
-  if (isGameOver) return;
+  if (isGameOver || !gameStarted) return;
   if (isPaused) {
     resumeGame();
   } else {
@@ -668,33 +774,25 @@ pauseBtn.addEventListener("click", function() {
 restartBtn.addEventListener("click", initGame);
 playAgainBtn.addEventListener("click", initGame);
 resumeBtn.addEventListener("click", resumeGame);
+continueBtn.addEventListener("click", continueGame);
 
 // ====== INITIALIZE GAME ON LOAD ======
 window.addEventListener('load', () => {
   initGame();
   updateDisplays();
-  
-  // Add dino legs
-  const frontLeg = document.createElement('div');
-  frontLeg.className = 'leg front';
-  dino.appendChild(frontLeg);
-  
-  const backLeg = document.createElement('div');
-  backLeg.className = 'leg back';
-  dino.appendChild(backLeg);
 });
 
-// ====== ADD VISUAL FEEDBACK FOR JUMPS ======
+// ====== ADD JUMP DUST EFFECT ======
 function addJumpEffect() {
   const effect = document.createElement('div');
   effect.style.cssText = `
     position: absolute;
     width: 60px;
     height: 20px;
-    background: rgba(0,0,0,0.1);
+    background: rgba(233, 196, 106, 0.3);
     border-radius: 50%;
-    bottom: 0;
-    left: 80px;
+    bottom: 65px;
+    left: 75px;
     animation: jumpDust 0.5s forwards;
     z-index: 5;
   `;
@@ -702,7 +800,7 @@ function addJumpEffect() {
   document.styleSheets[0].insertRule(`
     @keyframes jumpDust {
       0% { transform: scale(0.5); opacity: 1; }
-      100% { transform: scale(1.5); opacity: 0; }
+      100% { transform: scale(2); opacity: 0; }
     }
   `, 0);
   
