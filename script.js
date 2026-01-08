@@ -43,13 +43,13 @@ let obstacleInterval;
 let scoreInterval;
 let obstacles = [];
 let lastObstacleTime = 0;
-let obstacleSpawnDelay = 2000; // Start with slow spawn (2 seconds)
-let minSpawnDelay = 800; // Minimum spawn delay at high levels
-let obstacleGroupChance = 0.1; // Very low chance for groups at start
+let obstacleSpawnDelay = 2000;
+let minSpawnDelay = 800;
+let obstacleGroupChance = 0.1;
 let consecutiveObstacles = 0;
 let lastJumpTime = 0;
 let gameStarted = false;
-let isInvincible = false; // For after losing a life
+let isInvincible = false;
 
 // ====== OBSTACLE CONFIGURATION ======
 const obstacleTypes = [
@@ -128,7 +128,7 @@ function initGame() {
   lastObstacleTime = Date.now();
   
   // Clear all obstacles and clouds
-  document.querySelectorAll('.obstacle, .cloud').forEach(el => el.remove());
+  document.querySelectorAll('.obstacle, .cloud, .collision-debug').forEach(el => el.remove());
   
   // Update displays
   updateDisplays();
@@ -520,7 +520,7 @@ function gameLoop() {
 
 // ====== FIXED COLLISION DETECTION ======
 function checkCollision(obstacle) {
-  // Get dino position from CSS
+  // Get dino position
   let dinoBottom;
   if (dino.classList.contains('double-jumping')) {
     dinoBottom = 260; // Double jump height
@@ -530,35 +530,86 @@ function checkCollision(obstacle) {
     dinoBottom = 70; // On ground
   }
   
-  const dinoRect = {
-    left: 80,
-    right: 140, // 80 + 60
-    bottom: dinoBottom,
-    top: dinoBottom + 90 // 90 is dino height
+  // DINO HITBOX - smaller than visual dino for fair gameplay
+  const dinoHitbox = {
+    left: 100,        // Start 20px from left of dino visual
+    right: 120,       // End 20px from right of dino visual
+    bottom: dinoBottom + 20, // Start 20px above feet
+    top: dinoBottom + 70     // End 20px below head
   };
   
-  const obstacleRect = {
+  // OBSTACLE HITBOX - actual obstacle position
+  const obstacleHitbox = {
     left: 800 - obstacle.right - obstacle.width,
     right: 800 - obstacle.right,
     bottom: 70,
     top: 70 + obstacle.height
   };
   
-  // For rivers, check if dino is too low
-  if (obstacle.type === 'river') {
-    return dinoRect.bottom < 100 && // Dino must be below 100px to hit river
-           dinoRect.left < obstacleRect.right &&
-           dinoRect.right > obstacleRect.left;
+  // DEBUG: Show hitboxes (enable if needed)
+  if (window.showHitboxes) {
+    drawHitbox(dinoHitbox, 'dino');
+    drawHitbox(obstacleHitbox, 'obstacle');
   }
   
-  // For other obstacles, check full collision with buffer
-  const buffer = 5; // 5px buffer for easier gameplay
-  return !(
-    dinoRect.left > obstacleRect.right - buffer ||
-    dinoRect.right < obstacleRect.left + buffer ||
-    dinoRect.bottom > obstacleRect.top - 10 || // More forgiving on top
-    dinoRect.top < obstacleRect.bottom + 10 // More forgiving on bottom
+  // Check for ACTUAL COLLISION (not proximity)
+  const isColliding = (
+    dinoHitbox.left < obstacleHitbox.right &&    // Dino left edge before obstacle right edge
+    dinoHitbox.right > obstacleHitbox.left &&    // Dino right edge after obstacle left edge
+    dinoHitbox.bottom < obstacleHitbox.top &&    // Dino bottom above obstacle top
+    dinoHitbox.top > obstacleHitbox.bottom       // Dino top below obstacle bottom
   );
+  
+  // Special case for rivers
+  if (obstacle.type === 'river') {
+    // For rivers, only collide if dino is LOW (not jumping high enough)
+    const riverCollision = (
+      dinoHitbox.left < obstacleHitbox.right &&
+      dinoHitbox.right > obstacleHitbox.left &&
+      dinoBottom < 100  // Only collide if dino is below 100px (too low for river)
+    );
+    
+    if (riverCollision) {
+      console.log("💧 River collision - Dino too low!");
+    }
+    return riverCollision;
+  }
+  
+  if (isColliding) {
+    console.log("💥 COLLISION DETECTED!");
+    console.log("Dino position:", dinoBottom);
+    console.log("Dino hitbox:", dinoHitbox);
+    console.log("Obstacle hitbox:", obstacleHitbox);
+    console.log("Obstacle type:", obstacle.type);
+  }
+  
+  return isColliding;
+}
+
+// ====== DRAW HITBOXES FOR DEBUGGING ======
+function drawHitbox(hitbox, type) {
+  // Remove existing debug box
+  const existing = document.querySelector(`.collision-debug.${type}`);
+  if (existing) existing.remove();
+  
+  const debugBox = document.createElement('div');
+  debugBox.className = `collision-debug ${type}`;
+  debugBox.style.cssText = `
+    position: absolute;
+    border: 2px solid ${type === 'dino' ? '#FF0000' : '#00FF00'};
+    background: ${type === 'dino' ? 'rgba(255,0,0,0.2)' : 'rgba(0,255,0,0.2)'};
+    left: ${hitbox.left}px;
+    width: ${hitbox.right - hitbox.left}px;
+    bottom: ${hitbox.bottom}px;
+    height: ${hitbox.top - hitbox.bottom}px;
+    pointer-events: none;
+    z-index: 50;
+  `;
+  
+  gameArea.appendChild(debugBox);
+  
+  // Remove after short time
+  setTimeout(() => debugBox.remove(), 100);
 }
 
 // ====== AUTO JUMP LOGIC ======
@@ -762,6 +813,12 @@ document.addEventListener("keydown", function (e) {
     case "KeyA":
       toggleAutoJump();
       break;
+      
+    case "KeyH":
+      // Toggle hitbox visualization
+      window.showHitboxes = !window.showHitboxes;
+      showGameMessage(window.showHitboxes ? "Hitboxes ON" : "Hitboxes OFF");
+      break;
   }
 });
 
@@ -809,6 +866,7 @@ window.addEventListener('load', () => {
   
   console.log("🎮 Dino Dash: Jurassic Adventure Loaded!");
   console.log("📱 Controls: SPACE to jump, P to pause, R to restart, A for auto-jump");
+  console.log("🎯 Press H to toggle hitbox visualization (for debugging)");
   console.log("🎯 Game starts slow and gets faster at higher levels!");
 });
 
