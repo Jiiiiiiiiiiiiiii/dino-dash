@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dino Dash Enhanced</title>
+  <title>Dino Dash - Jurassic Adventure</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,8 +11,8 @@
 
   <div class="container">
     <header>
-      <h1><i class="fas fa-dragon"></i> Dino Dash Enhanced <i class="fas fa-dragon"></i></h1>
-      <p class="subtitle">Press <strong>SPACE</strong> or <strong>CLICK</strong> to jump • <strong>P</strong> to pause • <strong>Double-click</strong> for rivers!</p>
+      <h1><i class="fas fa-dragon"></i> Dino Dash: Jurassic Adventure <i class="fas fa-dragon"></i></h1>
+      <p class="subtitle">Control your dinosaur! <strong>SPACE</strong> or <strong>CLICK</strong> to jump • <strong>P</strong> to pause • <strong>Double-jump</strong> for rivers!</p>
     </header>
 
     <div class="game-info">
@@ -22,7 +22,7 @@
           <span>Score: <span id="score">0</span></span>
         </div>
         <div class="info-box">
-          <i class="fas fa-chart-line"></i>
+          <i class="fas fa-trophy"></i>
           <span>High Score: <span id="high-score">0</span></span>
         </div>
         <div class="info-box">
@@ -30,12 +30,12 @@
           <span>Level: <span id="level">1</span></span>
         </div>
         <div class="info-box">
-          <i class="fas fa-bolt"></i>
-          <span>Speed: <span id="speed">1x</span></span>
+          <i class="fas fa-running"></i>
+          <span>Speed: <span id="speed">Normal</span></span>
         </div>
         <div class="info-box">
-          <i class="fas fa-mountain"></i>
-          <span>Difficulty: <span id="difficulty-text">Normal</span></span>
+          <i class="fas fa-heart"></i>
+          <span>Lives: <span id="lives">3</span></span>
         </div>
       </div>
 
@@ -44,7 +44,7 @@
           <i class="fas fa-pause"></i> Pause
         </button>
         <button id="auto-btn" class="control-btn">
-          <i class="fas fa-robot"></i> Auto-Jump: <span id="auto-status">OFF</span>
+          <i class="fas fa-robot"></i> Auto: <span id="auto-status">OFF</span>
         </button>
         <button id="restart-btn" class="control-btn">
           <i class="fas fa-redo"></i> Restart
@@ -54,70 +54,79 @@
 
     <div class="game-container">
       <div class="game" id="game-area">
-        <div id="dino"></div>
+        <div id="dino">
+          <div class="dino-body"></div>
+          <div class="dino-head"></div>
+          <div class="dino-eye"></div>
+          <div class="dino-tail"></div>
+          <div class="dino-leg front-leg"></div>
+          <div class="dino-leg back-leg"></div>
+        </div>
         <!-- Obstacles will be dynamically added here -->
-        <div class="game-state" id="game-state">Ready!</div>
+        <div class="game-state" id="game-state">Ready to Run!</div>
+        <div class="ground"></div>
       </div>
       
       <div class="obstacle-legend">
         <div class="legend-item">
-          <div class="legend-cactus"></div>
-          <span>Cactus (Single Jump)</span>
+          <div class="legend-icon"><i class="fas fa-tree"></i></div>
+          <span>Tree (Jump)</span>
         </div>
         <div class="legend-item">
-          <div class="legend-rock"></div>
-          <span>Rock (Single Jump)</span>
+          <div class="legend-icon"><i class="fas fa-mountain"></i></div>
+          <span>Rock (Jump)</span>
         </div>
         <div class="legend-item">
-          <div class="legend-river"></div>
+          <div class="legend-icon"><i class="fas fa-water"></i></div>
           <span>River (Double Jump!)</span>
         </div>
         <div class="legend-item">
-          <div class="legend-other-dino"></div>
-          <span>Other Dino (Single Jump)</span>
+          <div class="legend-icon"><i class="fas fa-dragon"></i></div>
+          <span>Other Dino (Jump)</span>
         </div>
       </div>
     </div>
 
     <div class="instructions">
-      <h3><i class="fas fa-info-circle"></i> How to Play & Features</h3>
+      <h3><i class="fas fa-info-circle"></i> How to Play - Jurassic Adventure</h3>
       <div class="instructions-grid">
         <div class="instruction-card">
           <h4><i class="fas fa-gamepad"></i> Controls</h4>
           <ul>
-            <li><strong>SPACE</strong> or <strong>CLICK</strong> - Jump</li>
-            <li><strong>Double SPACE/CLICK</strong> - Double jump for rivers</li>
-            <li><strong>P key</strong> - Pause/Resume game</li>
-            <li><strong>R key</strong> - Restart game</li>
+            <li><i class="fas fa-space-awesome"></i> <strong>SPACE</strong> - Jump</li>
+            <li><i class="fas fa-mouse-pointer"></i> <strong>CLICK/TAP</strong> - Jump</li>
+            <li><i class="fas fa-forward"></i> <strong>Double Tap</strong> - Double jump for rivers</li>
+            <li><i class="fas fa-pause"></i> <strong>P key</strong> - Pause/Resume</li>
+            <li><i class="fas fa-redo"></i> <strong>R key</strong> - Restart game</li>
           </ul>
         </div>
         <div class="instruction-card">
           <h4><i class="fas fa-bullseye"></i> Obstacles</h4>
           <ul>
-            <li><span class="obstacle-icon cactus"></span> Cactus - Single jump</li>
-            <li><span class="obstacle-icon rock"></span> Rock - Single jump</li>
-            <li><span class="obstacle-icon river"></span> River - Double jump required!</li>
-            <li><span class="obstacle-icon other-dino"></span> Other Dino - Single jump</li>
+            <li><i class="fas fa-tree"></i> <strong>Trees</strong> - Jump over them</li>
+            <li><i class="fas fa-mountain"></i> <strong>Rocks</strong> - Jump over them</li>
+            <li><i class="fas fa-water"></i> <strong>Rivers</strong> - Double jump required!</li>
+            <li><i class="fas fa-dragon"></i> <strong>Other Dinosaurs</strong> - Jump over rivals</li>
           </ul>
         </div>
         <div class="instruction-card">
-          <h4><i class="fas fa-chart-line"></i> Game Features</h4>
+          <h4><i class="fas fa-chart-line"></i> Game Rules</h4>
           <ul>
-            <li>Progressive difficulty system</li>
-            <li>Smart obstacle spawning</li>
-            <li>Auto-jump AI learning mode</li>
-            <li>Level-based speed increase</li>
-            <li>High score saved locally</li>
+            <li><i class="fas fa-running"></i> Start slow - Speed increases at higher levels</li>
+            <li><i class="fas fa-heart"></i> You have 3 lives - Hit obstacle = lose 1 life</li>
+            <li><i class="fas fa-star"></i> Score increases over time</li>
+            <li><i class="fas fa-level-up-alt"></i> Every 100 points = New level</li>
+            <li><i class="fas fa-bolt"></i> Higher levels = Faster gameplay</li>
           </ul>
         </div>
         <div class="instruction-card">
-          <h4><i class="fas fa-lightbulb"></i> Tips</h4>
+          <h4><i class="fas fa-lightbulb"></i> Pro Tips</h4>
           <ul>
-            <li>Rivers need quick double jumps</li>
-            <li>Watch for obstacle patterns</li>
-            <li>Use Auto-Jump to learn timing</li>
-            <li>Take breaks with pause feature</li>
-            <li>Higher levels = more points!</li>
+            <li><i class="fas fa-water"></i> Rivers need quick double jumps</li>
+            <li><i class="fas fa-robot"></i> Use Auto mode to learn timing</li>
+            <li><i class="fas fa-pause"></i> Pause when you need a break</li>
+            <li><i class="fas fa-eye"></i> Watch for patterns in obstacles</li>
+            <li><i class="fas fa-tachometer-alt"></i> Don't panic - game starts slow!</li>
           </ul>
         </div>
       </div>
@@ -141,7 +150,7 @@
           <span>High Score: <strong id="final-high-score">0</strong></span>
         </div>
       </div>
-      <p id="game-over-tip" class="tip">Tip: Rivers require double jumps!</p>
+      <p id="game-over-tip" class="tip">You ran out of lives! Try again!</p>
       <button id="play-again-btn" class="play-again-btn">
         <i class="fas fa-play"></i> Play Again
       </button>
@@ -161,12 +170,32 @@
           <span>Current Level: <strong id="paused-level">1</strong></span>
         </div>
         <div class="stat-item">
-          <i class="fas fa-bolt"></i>
-          <span>Game Speed: <strong id="paused-speed">1x</strong></span>
+          <i class="fas fa-heart"></i>
+          <span>Lives Left: <strong id="paused-lives">3</strong></span>
         </div>
       </div>
       <button id="resume-btn" class="play-again-btn">
-        <i class="fas fa-play"></i> Resume
+        <i class="fas fa-play"></i> Resume Adventure
+      </button>
+    </div>
+  </div>
+
+  <div id="life-lost-modal" class="modal">
+    <div class="modal-content">
+      <h2><i class="fas fa-heart-broken"></i> Life Lost!</h2>
+      <div class="stats">
+        <div class="stat-item">
+          <i class="fas fa-heart"></i>
+          <span>Lives Remaining: <strong id="remaining-lives">2</strong></span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-star"></i>
+          <span>Current Score: <strong id="life-lost-score">0</strong></span>
+        </div>
+      </div>
+      <p class="tip">Be careful! Watch out for obstacles!</p>
+      <button id="continue-btn" class="play-again-btn">
+        <i class="fas fa-forward"></i> Continue
       </button>
     </div>
   </div>
