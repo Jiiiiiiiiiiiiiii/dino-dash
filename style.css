@@ -1,3 +1,4 @@
+/* ====== RESET & BASE STYLES ====== */
 * {
   margin: 0;
   padding: 0;
@@ -10,8 +11,10 @@ body {
   color: #333;
   min-height: 100vh;
   padding: 20px;
+  overflow-x: hidden;
 }
 
+/* ====== CONTAINER & LAYOUT ====== */
 .container {
   max-width: 1000px;
   margin: 0 auto;
@@ -21,6 +24,7 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* ====== HEADER ====== */
 header {
   text-align: center;
   margin-bottom: 25px;
@@ -39,8 +43,13 @@ h1 {
   color: #555;
   font-size: 1.1rem;
   margin-top: 5px;
+  background: linear-gradient(to right, #1a2980, #26d0ce);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+/* ====== GAME INFO ====== */
 .game-info {
   display: flex;
   justify-content: space-between;
@@ -103,6 +112,7 @@ h1 {
   transform: translateY(0);
 }
 
+/* ====== GAME CONTAINER ====== */
 .game-container {
   display: flex;
   flex-direction: column;
@@ -117,17 +127,31 @@ h1 {
   margin: 0 auto;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(to bottom, #87ceeb 40%, #e0f7e0 40%, #e0f7e0 100%);
+  background: 
+    linear-gradient(to bottom, #87ceeb 40%, #e0f7e0 40%, #e0f7e0 100%),
+    repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.1) 50px, rgba(255,255,255,0.1) 100px);
   border-radius: 15px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
+/* Ground pattern */
+.game:before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: repeating-linear-gradient(90deg, #8B4513, #8B4513 20px, #A0522D 20px, #A0522D 40px);
+}
+
+/* ====== DINOSAUR ====== */
 #dino {
   width: 60px;
   height: 70px;
   background: linear-gradient(to bottom, #4CAF50, #2E7D32);
   position: absolute;
-  bottom: 0;
+  bottom: 5px;
   left: 80px;
   border-radius: 10px 10px 0 0;
   z-index: 10;
@@ -135,6 +159,7 @@ h1 {
   transition: bottom 0.3s ease;
 }
 
+/* Dino details */
 #dino:before {
   content: '';
   position: absolute;
@@ -158,46 +183,141 @@ h1 {
   box-shadow: -15px 0 0 white;
 }
 
-.obstacle {
+/* Dino legs */
+#dino .leg {
   position: absolute;
-  bottom: 0;
+  width: 10px;
+  height: 15px;
+  background: #2E7D32;
+  bottom: -15px;
 }
 
+#dino .leg.front {
+  left: 15px;
+}
+
+#dino .leg.back {
+  right: 15px;
+}
+
+/* ====== JUMP ANIMATIONS ====== */
+#dino.jumping {
+  animation: jumpAnimation 0.5s ease-out;
+}
+
+#dino.double-jumping {
+  animation: doubleJumpAnimation 0.6s ease-out;
+}
+
+@keyframes jumpAnimation {
+  0% { bottom: 5px; transform: scaleY(1); }
+  50% { bottom: 125px; transform: scaleY(0.9); }
+  100% { bottom: 5px; transform: scaleY(1); }
+}
+
+@keyframes doubleJumpAnimation {
+  0% { bottom: 125px; transform: scaleY(0.9); }
+  50% { bottom: 195px; transform: scaleY(0.8); }
+  100% { bottom: 5px; transform: scaleY(1); }
+}
+
+/* ====== OBSTACLES ====== */
+.obstacle {
+  position: absolute;
+  bottom: 5px;
+  transition: right 0.1s linear;
+}
+
+/* Cactus */
 .cactus {
   width: 25px;
   height: 60px;
   background: linear-gradient(to bottom, #8B4513, #A0522D);
   border-radius: 5px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+  position: relative;
 }
 
+.cactus:before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #8B4513;
+  top: -5px;
+  left: 7px;
+  border-radius: 50%;
+}
+
+/* Rock */
 .rock {
   width: 50px;
   height: 40px;
   background: linear-gradient(to bottom, #808080, #696969);
   border-radius: 10px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
 }
 
+/* River */
 .river {
   width: 120px;
   height: 30px;
   background: linear-gradient(to bottom, #1e90ff, #4169e1);
   border-radius: 0 0 15px 15px;
-  bottom: 0;
+  bottom: 5px;
+  animation: riverFlow 2s infinite linear;
+  position: relative;
+  overflow: hidden;
 }
 
+.river:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: riverShine 2s infinite linear;
+}
+
+/* Other Dino */
 .other-dino {
   width: 50px;
   height: 60px;
   background: linear-gradient(to bottom, #FF5722, #D84315);
   border-radius: 10px 10px 0 0;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+  animation: dinoRun 0.5s infinite alternate;
 }
 
+/* Obstacle animations */
+@keyframes riverFlow {
+  0% { background-position: 0 0; }
+  100% { background-position: 100px 0; }
+}
+
+@keyframes riverShine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes dinoRun {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-5px); }
+}
+
+/* ====== OBSTACLE LEGEND ====== */
 .obstacle-legend {
   display: flex;
   justify-content: center;
   gap: 30px;
   margin-top: 15px;
   flex-wrap: wrap;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid #1a2980;
 }
 
 .legend-item {
@@ -205,6 +325,7 @@ h1 {
   flex-direction: column;
   align-items: center;
   gap: 5px;
+  min-width: 120px;
 }
 
 .legend-cactus, .legend-rock, .legend-river, .legend-other-dino {
@@ -229,6 +350,7 @@ h1 {
   background: linear-gradient(to bottom, #FF5722, #D84315);
 }
 
+/* ====== INSTRUCTIONS ====== */
 .instructions {
   background-color: #f9f9f9;
   border-radius: 15px;
@@ -239,31 +361,71 @@ h1 {
 
 .instructions h3 {
   color: #1a2980;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.instructions ul {
+.instructions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.instruction-card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.instruction-card h4 {
+  color: #1a2980;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instruction-card ul {
   list-style-type: none;
-  padding-left: 10px;
+  padding-left: 0;
 }
 
-.instructions li {
-  padding: 8px 0;
-  border-bottom: 1px dashed #ddd;
+.instruction-card li {
+  padding: 5px 0;
+  border-bottom: 1px dashed #eee;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.instructions li:before {
-  content: '•';
-  color: #26d0ce;
-  font-size: 1.5rem;
+.obstacle-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 5px;
 }
 
+.obstacle-icon.cactus {
+  background: #8B4513;
+}
+
+.obstacle-icon.rock {
+  background: #808080;
+}
+
+.obstacle-icon.river {
+  background: #1e90ff;
+}
+
+.obstacle-icon.other-dino {
+  background: #FF5722;
+}
+
+/* ====== MODALS ====== */
 .modal {
   display: none;
   position: fixed;
@@ -285,6 +447,12 @@ h1 {
   max-width: 500px;
   width: 90%;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+  animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .modal-content h2 {
@@ -293,10 +461,30 @@ h1 {
   font-size: 2.5rem;
 }
 
-.modal-content p {
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   font-size: 1.3rem;
-  margin: 15px 0;
   color: #333;
+}
+
+.tip {
+  background: #e3f2fd;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-style: italic;
+  color: #1a2980;
+  border-left: 4px solid #26d0ce;
 }
 
 .play-again-btn {
@@ -320,6 +508,34 @@ h1 {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* ====== GAME STATE INDICATORS ====== */
+.game-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px 40px;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  display: none;
+  z-index: 1000;
+}
+
+.game-state.show {
+  display: block;
+  animation: fadeInOut 2s forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ====== GAME OVER EFFECTS ====== */
 .game-over {
   animation: gameOverShake 0.5s ease-in-out;
 }
@@ -330,6 +546,37 @@ h1 {
   20%, 40%, 60%, 80% { transform: translateX(10px); }
 }
 
+/* ====== AUTO JUMP INDICATOR ====== */
+.auto-jump-indicator {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  display: none;
+  z-index: 100;
+}
+
+/* ====== SCORE POPUP ====== */
+.score-popup {
+  position: absolute;
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 1.2rem;
+  animation: scoreFloat 1s forwards;
+  pointer-events: none;
+  z-index: 100;
+}
+
+@keyframes scoreFloat {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-50px); opacity: 0; }
+}
+
+/* ====== RESPONSIVE DESIGN ====== */
 @media (max-width: 850px) {
   .game {
     width: 95%;
@@ -351,5 +598,42 @@ h1 {
   
   h1 {
     font-size: 2rem;
+  }
+  
+  .instructions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .obstacle-legend {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .legend-item {
+    flex-direction: row;
+    min-width: auto;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .info-box {
+    min-width: 120px;
+    padding: 10px 15px;
+  }
+  
+  .control-btn {
+    padding: 10px 15px;
+    font-size: 0.9rem;
   }
 }
