@@ -26,109 +26,52 @@ const playAgainBtn = document.getElementById("play-again-btn");
 const resumeBtn = document.getElementById("resume-btn");
 const continueBtn = document.getElementById("continue-btn");
 const gameStateIndicator = document.getElementById("game-state");
+const groundLine = document.getElementById("ground-line");
 
 // ====== GAME VARIABLES ======
 let score = 0;
 let highScore = localStorage.getItem("dinoHighScore") || 0;
 let level = 1;
-let gameSpeed = 1;
+let gameSpeed = 3; // MAS MABAGAL SA START
 let lives = 3;
 let isJumping = false;
 let isDoubleJumping = false;
 let isPaused = false;
 let isGameOver = false;
 let autoJumpEnabled = false;
-let gameInterval;
-let obstacleInterval;
-let scoreInterval;
-let obstacles = [];
-let lastObstacleTime = 0;
-let obstacleSpawnDelay = 2000;
-let minSpawnDelay = 800;
-let obstacleGroupChance = 0.1;
-let consecutiveObstacles = 0;
-let lastJumpTime = 0;
 let gameStarted = false;
 let isInvincible = false;
+let obstacles = [];
+let obstacleInterval;
+let scoreInterval;
+let gameLoopInterval;
+let lastObstacleTime = 0;
+let obstacleSpawnDelay = 2000; // MAS MALAYONG SPACING
 
-// ====== OBSTACLE CONFIGURATION - SHORTER FOR GROUND ONLY ======
-const obstacleTypes = [
-  { 
-    type: 'tree', 
-    width: 40, 
-    height: 80,  // SHORTER - GROUND ONLY
-    weight: 30,
-    difficulty: 1.0,
-    description: "Jump over the tree"
-  },
-  { 
-    type: 'rock', 
-    width: 60, 
-    height: 35,  // SHORTER - GROUND ONLY
-    weight: 35,
-    difficulty: 1.1,
-    description: "Jump over the rock"
-  },
-  { 
-    type: 'river', 
-    width: 140, 
-    height: 30,  // SHALLOWER - GROUND ONLY
-    weight: 20,
-    difficulty: 1.8,
-    requiresDoubleJump: true,
-    description: "Double jump over the river!"
-  },
-  { 
-    type: 'other-dino', 
-    width: 70, 
-    height: 60,  // SHORTER - GROUND ONLY
-    weight: 15,
-    difficulty: 1.3,
-    description: "Jump over the other dinosaur"
-  }
-];
-
-// ====== SPEED LEVELS ======
-const speedLevels = [
-  { level: 1, name: "Very Slow", multiplier: 1.0 },
-  { level: 2, name: "Slow", multiplier: 1.2 },
-  { level: 3, name: "Normal", multiplier: 1.5 },
-  { level: 5, name: "Fast", multiplier: 1.8 },
-  { level: 8, name: "Very Fast", multiplier: 2.2 },
-  { level: 12, name: "Extreme", multiplier: 2.8 },
-  { level: 15, name: "Lightning", multiplier: 3.5 }
-];
-
-// ====== GAME TIPS ======
-const gameTips = [
-  "The game starts slow - learn the timing!",
-  "Rivers need quick double jumps",
-  "Speed increases at higher levels",
-  "You have 3 lives - be careful!",
-  "Watch for patterns in obstacles",
-  "Use Auto mode to practice timing",
-  "Higher levels = faster gameplay",
-  "Take your time, no need to rush!"
-];
+// ====== FLOOR POSITION ======
+const FLOOR_HEIGHT = 70; // All obstacles and dino are on floor
+const DINO_LEFT = 80;
+const DINO_WIDTH = 60;
+const DINO_ON_FLOOR = 70;
+const DINO_JUMP_HEIGHT = 190;
+const DINO_DOUBLE_JUMP_HEIGHT = 260;
 
 // ====== INITIALIZE GAME ======
 function initGame() {
   score = 0;
   level = 1;
-  gameSpeed = 1;
+  gameSpeed = 3; // MAS MABAGAL
   lives = 3;
-  obstacleSpawnDelay = 2000;
-  obstacleGroupChance = 0.1;
-  consecutiveObstacles = 0;
+  obstacleSpawnDelay = 2000; // MAS MALAYO ANG SPACING
   isGameOver = false;
   isPaused = false;
   gameStarted = false;
   isInvincible = false;
   obstacles = [];
-  lastObstacleTime = Date.now();
+  lastObstacleTime = 0;
   
-  // Clear all obstacles and clouds
-  document.querySelectorAll('.obstacle, .cloud, .collision-debug').forEach(el => el.remove());
+  // Clear all obstacles
+  document.querySelectorAll('.obstacle').forEach(el => el.remove());
   
   // Update displays
   updateDisplays();
@@ -139,44 +82,14 @@ function initGame() {
   lifeLostModal.style.display = 'none';
   
   // Reset dino position and state
-  dino.style.bottom = '70px';
+  dino.style.bottom = FLOOR_HEIGHT + 'px';
   dino.style.opacity = '1';
   dino.classList.remove('jumping', 'double-jumping', 'game-over-shake');
-  
-  // Create background clouds
-  createClouds();
   
   // Show start message
   showGameMessage("Press SPACE or CLICK to Start!");
   
-  console.log("✅ Game initialized - Ready to play!");
-}
-
-// ====== CREATE BACKGROUND CLOUDS ======
-function createClouds() {
-  for (let i = 0; i < 5; i++) {
-    const cloud = document.createElement('div');
-    cloud.className = 'cloud';
-    
-    // Random cloud properties
-    const size = 40 + Math.random() * 60;
-    const top = 30 + Math.random() * 100;
-    const left = Math.random() * 800;
-    const speed = 40 + Math.random() * 40;
-    const opacity = 0.3 + Math.random() * 0.4;
-    
-    cloud.style.width = `${size}px`;
-    cloud.style.height = `${size / 2}px`;
-    cloud.style.top = `${top}px`;
-    cloud.style.left = `${left}px`;
-    cloud.style.opacity = `${opacity}`;
-    cloud.style.animationDuration = `${speed}s`;
-    
-    // Cloud details
-    cloud.style.borderRadius = '50px';
-    
-    gameArea.appendChild(cloud);
-  }
+  console.log("✅ Game initialized - MAS MADALING OBSTACLES!");
 }
 
 // ====== START GAME ======
@@ -186,7 +99,7 @@ function startGame() {
   gameStarted = true;
   showGameMessage("Go!");
   
-  // Start game intervals immediately
+  // Start game intervals
   startGameIntervals();
 }
 
@@ -204,22 +117,26 @@ function startGameIntervals() {
     }
   }, 200);
   
-  // Obstacle generation interval
+  // Obstacle generation interval - MAS MALAYO ANG SPACING
   obstacleInterval = setInterval(() => {
     if (!isPaused && !isGameOver && gameStarted) {
-      generateObstacleWithLogic();
+      const currentTime = Date.now();
+      if (currentTime - lastObstacleTime > obstacleSpawnDelay) {
+        createObstacle();
+        lastObstacleTime = currentTime;
+      }
     }
   }, 100);
   
-  // Game loop for collision detection and auto-jump
-  gameInterval = setInterval(gameLoop, 16);
+  // Game loop for collision detection
+  gameLoopInterval = setInterval(gameLoop, 20);
 }
 
 // ====== CLEAR INTERVALS ======
 function clearIntervals() {
   if (scoreInterval) clearInterval(scoreInterval);
   if (obstacleInterval) clearInterval(obstacleInterval);
-  if (gameInterval) clearInterval(gameInterval);
+  if (gameLoopInterval) clearInterval(gameLoopInterval);
 }
 
 // ====== UPDATE DISPLAYS ======
@@ -230,12 +147,9 @@ function updateDisplays() {
   livesDisplay.textContent = lives;
   autoStatusDisplay.textContent = autoJumpEnabled ? 'ON' : 'OFF';
   
-  // Update speed display based on current level
-  const speedLevel = speedLevels.reduce((current, speed) => 
-    level >= speed.level ? speed : current, speedLevels[0]
-  );
-  speedDisplay.textContent = speedLevel.name;
-  speedDisplay.style.color = getSpeedColor(level);
+  // Update speed display
+  speedDisplay.textContent = getSpeedName();
+  speedDisplay.style.color = getSpeedColor();
   
   // Update auto button color
   autoBtn.style.background = autoJumpEnabled 
@@ -243,12 +157,24 @@ function updateDisplays() {
     : 'linear-gradient(to right, #e76f51, #f4a261)';
 }
 
+// ====== GET SPEED NAME ======
+function getSpeedName() {
+  if (gameSpeed < 5) return "Very Slow";
+  if (gameSpeed < 7) return "Slow";
+  if (gameSpeed < 10) return "Normal";
+  if (gameSpeed < 13) return "Fast";
+  if (gameSpeed < 16) return "Very Fast";
+  if (gameSpeed < 20) return "Extreme";
+  return "Lightning";
+}
+
 // ====== GET SPEED COLOR ======
-function getSpeedColor(level) {
-  if (level < 3) return '#4CAF50'; // Green for slow
-  if (level < 6) return '#FFC107'; // Yellow for normal
-  if (level < 10) return '#FF9800'; // Orange for fast
-  return '#F44336'; // Red for very fast
+function getSpeedColor() {
+  if (gameSpeed < 5) return '#4CAF50';
+  if (gameSpeed < 7) return '#FFC107';
+  if (gameSpeed < 10) return '#FF9800';
+  if (gameSpeed < 13) return '#FF5722';
+  return '#F44336';
 }
 
 // ====== UPDATE LEVEL & SPEED ======
@@ -257,20 +183,8 @@ function updateLevelAndSpeed() {
   
   if (newLevel > level) {
     level = newLevel;
-    
-    // PROGRESSIVE DIFFICULTY: Game gets faster with higher levels
-    const speedLevel = speedLevels.reduce((current, speed) => 
-      level >= speed.level ? speed : current, speedLevels[0]
-    );
-    
-    // Update game speed based on level
-    gameSpeed = speedLevel.multiplier;
-    
-    // Gradually decrease spawn delay (makes obstacles come faster)
-    obstacleSpawnDelay = Math.max(minSpawnDelay, 2000 - (level * 80));
-    
-    // Slightly increase chance for obstacle groups
-    obstacleGroupChance = Math.min(0.4, 0.1 + (level * 0.02));
+    gameSpeed += 0.3; // MAS MABAGAL ANG PAG-INCREASE
+    obstacleSpawnDelay = Math.max(1200, 2000 - (level * 40)); // MAS MALAYO PA RIN
     
     showLevelUpMessage();
     updateDisplays();
@@ -279,11 +193,7 @@ function updateLevelAndSpeed() {
 
 // ====== SHOW LEVEL UP MESSAGE ======
 function showLevelUpMessage() {
-  const speedLevel = speedLevels.reduce((current, speed) => 
-    level >= speed.level ? speed : current, speedLevels[0]
-  );
-  
-  showGameMessage(`Level ${level}! Speed: ${speedLevel.name}`);
+  showGameMessage(`Level ${level}! Speed: ${getSpeedName()}`);
   
   // Create score popup
   const popup = document.createElement('div');
@@ -306,112 +216,50 @@ function showGameMessage(message) {
   }, 1500);
 }
 
-// ====== SMART OBSTACLE GENERATION ======
-function generateObstacleWithLogic() {
-  const currentTime = Date.now();
+// ====== CREATE OBSTACLE WITH BETTER SPACING ======
+function createObstacle() {
+  // Simple obstacles muna sa start
+  const obstacleTypes = level < 3 ? ['tree', 'rock'] : ['tree', 'rock', 'river', 'other-dino'];
+  const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
   
-  // Check if enough time has passed since last obstacle
-  if (currentTime - lastObstacleTime < obstacleSpawnDelay) {
-    return;
-  }
-  
-  // Check if there's space on the screen (prevent overcrowding)
-  if (!hasSpaceForNewObstacle()) {
-    return;
-  }
-  
-  // Give breaks between obstacles (especially at early levels)
-  consecutiveObstacles++;
-  if (consecutiveObstacles >= (level < 5 ? 3 : 5)) {
-    consecutiveObstacles = 0;
-    lastObstacleTime = Date.now() + 1000; // Give a 1-second break
-    return;
-  }
-  
-  lastObstacleTime = currentTime;
-  
-  // Decide if we should spawn a group or single obstacle
-  const shouldSpawnGroup = Math.random() < obstacleGroupChance && level > 3;
-  
-  if (shouldSpawnGroup) {
-    spawnObstacleGroup();
-  } else {
-    spawnSingleObstacle();
-  }
-}
-
-// ====== CHECK FOR SPACE ======
-function hasSpaceForNewObstacle() {
-  if (obstacles.length === 0) return true;
-  
-  const lastObstacle = obstacles[obstacles.length - 1];
-  const lastObstacleRight = lastObstacle.right;
-  const lastObstacleWidth = lastObstacle.width;
-  
-  // Calculate safe distance - more space at lower levels
-  const safeDistance = level < 5 ? 400 : 
-                      level < 10 ? 350 : 
-                      300 - (level * 5);
-  
-  // Only spawn new obstacle if last one is far enough
-  return lastObstacleRight > safeDistance;
-}
-
-// ====== SPAWN SINGLE OBSTACLE ======
-function spawnSingleObstacle() {
-  // Weighted random selection
-  const totalWeight = obstacleTypes.reduce((sum, type) => sum + type.weight, 0);
-  let random = Math.random() * totalWeight;
-  
-  let selectedType;
-  for (const type of obstacleTypes) {
-    random -= type.weight;
-    if (random <= 0) {
-      selectedType = type;
-      break;
-    }
-  }
-  
-  createObstacle(selectedType);
-}
-
-// ====== SPAWN OBSTACLE GROUP ======
-function spawnObstacleGroup() {
-  // Only small groups at lower levels
-  const groupSize = level < 8 ? 2 : 
-                    level < 12 ? 3 : 4;
-  
-  const types = ['tree', 'rock']; // Only simple obstacles for groups
-  
-  for (let i = 0; i < groupSize; i++) {
-    const typeName = types[Math.floor(Math.random() * types.length)];
-    const obstacleType = obstacleTypes.find(t => t.type === typeName);
-    
-    if (obstacleType) {
-      // Stagger obstacles in group
-      setTimeout(() => {
-        if (!isPaused && !isGameOver && gameStarted && hasSpaceForNewObstacle()) {
-          createObstacle(obstacleType);
-        }
-      }, i * 300); // Small delay between obstacles in group
-    }
-  }
-}
-
-// ====== CREATE OBSTACLE ======
-function createObstacle(obstacleType) {
   const obstacle = document.createElement('div');
-  obstacle.className = `obstacle ${obstacleType.type}`;
-  obstacle.title = obstacleType.description;
+  obstacle.className = `obstacle ${type}`;
   
-  // Set obstacle properties - ALL AT BOTTOM
-  obstacle.style.width = `${obstacleType.width}px`;
-  obstacle.style.height = `${obstacleType.height}px`;
-  obstacle.style.right = `${-obstacleType.width}px`;
-  obstacle.style.bottom = '70px'; // ALL OBSTACLES AT GROUND LEVEL
+  // Set obstacle properties - MAS MALIIT PARA MAS MADALING TALUNDAN
+  let width, height;
   
-  // Add specific content based on obstacle type
-  if (obstacleType.type === 'other-dino') {
+  switch(type) {
+    case 'tree':
+      width = 35; // MAS MALIIT
+      height = 70; // MAS MAIKLI
+      break;
+    case 'rock':
+      width = 50; // MAS MALIIT
+      height = 30; // MAS MAIKLI
+      break;
+    case 'river':
+      width = 120; // MAS MALIIT
+      height = 25; // MAS MAIKLI
+      break;
+    case 'other-dino':
+      width = 60; // MAS MALIIT
+      height = 50; // MAS MAIKLI
+      break;
+    default:
+      width = 35;
+      height = 60;
+  }
+  
+  // SET ALL POSITION PROPERTIES
+  obstacle.style.position = 'absolute';
+  obstacle.style.width = `${width}px`;
+  obstacle.style.height = `${height}px`;
+  obstacle.style.right = `${-width}px`;
+  obstacle.style.bottom = `${FLOOR_HEIGHT}px`; // ON FLOOR
+  obstacle.style.zIndex = '10';
+  
+  // Add specific content for other-dino
+  if (type === 'other-dino') {
     obstacle.innerHTML = `
       <div class="body"></div>
       <div class="head"></div>
@@ -419,30 +267,34 @@ function createObstacle(obstacleType) {
     `;
   }
   
-  // Add to game area and obstacles array
+  // Add visual indicator
+  obstacle.style.border = '1px solid rgba(255,255,255,0.5)';
+  
+  // Add to game area
   gameArea.appendChild(obstacle);
+  
+  // Add to obstacles array with MAS MABAGAL NA SPEED
   obstacles.push({
     element: obstacle,
-    type: obstacleType.type,
-    width: obstacleType.width,
-    height: obstacleType.height,
-    right: -obstacleType.width,
-    speed: obstacleType.difficulty * gameSpeed * 3,
-    requiresDoubleJump: obstacleType.requiresDoubleJump || false
+    type: type,
+    width: width,
+    height: height,
+    right: -width,
+    speed: gameSpeed * 0.8 // MAS MABAGAL
   });
+  
+  console.log(`🎯 Created ${type} obstacle - MAS MADALING TALUNDAN!`);
 }
 
-// ====== JUMP FUNCTION ======
+// ====== JUMP FUNCTION WITH BETTER TIMING ======
 function jump(isDoubleJump = false) {
   // Start game on first jump if not started
   if (!gameStarted) {
     startGame();
-    // Allow the first jump to happen
+    return;
   }
   
   if (isJumping && !isDoubleJump) return;
-  
-  const currentTime = Date.now();
   
   if (!isJumping) {
     // First jump
@@ -456,25 +308,22 @@ function jump(isDoubleJump = false) {
       isDoubleJumping = false;
     }, 500);
     
-    lastJumpTime = currentTime;
+    // Add jump dust effect
     addJumpEffect();
   } else if (isJumping && !isDoubleJumping && isDoubleJump) {
-    // Check if it's quick enough for a double jump
-    if (currentTime - lastJumpTime < 300) {
-      // Double jump (for rivers)
-      isDoubleJumping = true;
-      dino.classList.remove('jumping');
-      dino.classList.add('double-jumping');
-      
-      // Reset after double jump
+    // Double jump
+    isDoubleJumping = true;
+    dino.classList.remove('jumping');
+    dino.classList.add('double-jumping');
+    
+    // Reset after double jump
+    setTimeout(() => {
+      dino.classList.remove('double-jumping');
       setTimeout(() => {
-        dino.classList.remove('double-jumping');
-        setTimeout(() => {
-          isJumping = false;
-          isDoubleJumping = false;
-        }, 300);
-      }, 600);
-    }
+        isJumping = false;
+        isDoubleJumping = false;
+      }, 300);
+    }, 600);
   }
 }
 
@@ -493,7 +342,7 @@ function addJumpEffect() {
 function gameLoop() {
   if (isPaused || isGameOver || !gameStarted) return;
   
-  // Move obstacles
+  // Move obstacles MAS MABAGAL
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obstacle = obstacles[i];
     obstacle.right += obstacle.speed;
@@ -503,6 +352,7 @@ function gameLoop() {
     if (obstacle.right > 850) {
       obstacle.element.remove();
       obstacles.splice(i, 1);
+      continue;
     }
     
     // Auto-jump logic
@@ -510,7 +360,7 @@ function gameLoop() {
       autoJumpLogic(obstacle);
     }
     
-    // Collision detection (skip if invincible)
+    // SIMPLE COLLISION DETECTION
     if (!isInvincible && checkCollision(obstacle)) {
       handleCollision();
       return;
@@ -518,148 +368,87 @@ function gameLoop() {
   }
 }
 
-// ====== SIMPLE AND ACCURATE COLLISION DETECTION ======
+// ====== SIMPLE COLLISION DETECTION ======
 function checkCollision(obstacle) {
-  // Get dino position
-  let dinoBottom;
-  if (dino.classList.contains('double-jumping')) {
-    dinoBottom = 260; // Double jump height
-  } else if (dino.classList.contains('jumping')) {
-    dinoBottom = 190; // Normal jump height
-  } else {
-    dinoBottom = 70; // On ground
+  // Get dino's current state
+  const isDinoJumping = dino.classList.contains('jumping') || dino.classList.contains('double-jumping');
+  
+  // Dino's horizontal position
+  const dinoLeft = DINO_LEFT;
+  const dinoRight = dinoLeft + DINO_WIDTH;
+  
+  // Obstacle's horizontal position
+  const obstacleLeft = 800 - obstacle.right - obstacle.width;
+  const obstacleRight = 800 - obstacle.right;
+  
+  // Check for horizontal overlap - MAS MALAPIT NA DETECTION
+  const horizontalOverlap = (
+    dinoRight > obstacleLeft + 5 && // MAS MALAPIT
+    dinoLeft < obstacleRight - 5    // MAS MALAPIT
+  );
+  
+  if (!horizontalOverlap) {
+    return false; // No horizontal overlap, no collision
   }
   
-  // DINO FOOT HITBOX - ONLY CHECK FEET FOR GROUND OBSTACLES
-  const dinoFootHitbox = {
-    left: 90,        // 10px from left edge
-    right: 130,      // 10px from right edge
-    bottom: dinoBottom, // Bottom of dino (feet position)
-    top: dinoBottom + 20 // 20px above feet
-  };
-  
-  // OBSTACLE HITBOX - ALL OBSTACLES ARE AT BOTTOM (70px)
-  const obstacleHitbox = {
-    left: 800 - obstacle.right - obstacle.width,
-    right: 800 - obstacle.right,
-    bottom: 70, // ALL OBSTACLES AT GROUND
-    top: 70 + obstacle.height
-  };
-  
-  // DEBUG: Show hitboxes (press H to toggle)
-  if (window.showHitboxes) {
-    drawHitbox(dinoFootHitbox, 'dino');
-    drawHitbox(obstacleHitbox, 'obstacle');
-  }
-  
-  // SPECIAL CASE FOR RIVERS
+  // SIMPLE LOGIC: If dino is NOT jumping, collision occurs
   if (obstacle.type === 'river') {
-    // For rivers, check if dino's FEET are in the river
-    const feetInRiver = (
-      dinoFootHitbox.left < obstacleHitbox.right - 5 &&
-      dinoFootHitbox.right > obstacleHitbox.left + 5 &&
-      dinoBottom < 120 // Must be above 120px to clear river
-    );
-    
-    if (feetInRiver && dinoBottom < 120) {
-      console.log("💧 River hit - Feet in water! Height:", dinoBottom);
+    // River needs double jump
+    if (!dino.classList.contains('double-jumping')) {
+      console.log("💧 River collision - need double jump!");
       return true;
     }
     return false;
+  } else {
+    // Other obstacles - MAS MADALING JUMP
+    if (!isDinoJumping) {
+      console.log(`💥 Collision with ${obstacle.type}!`);
+      return true;
+    }
   }
   
-  // FOR ALL OTHER OBSTACLES (Trees, Rocks, Other Dinos)
-  // Check if dino's FEET hit the obstacle
-  const feetHitObstacle = (
-    dinoFootHitbox.left < obstacleHitbox.right - 10 &&  // 10px buffer
-    dinoFootHitbox.right > obstacleHitbox.left + 10 &&  // 10px buffer
-    dinoBottom < obstacleHitbox.top + 5 &&              // Feet below obstacle top
-    dinoBottom > obstacleHitbox.bottom - 5              // Feet above obstacle bottom
-  );
-  
-  // Also check if dino's BODY hits tall obstacles (like trees)
-  const bodyHitObstacle = (
-    dinoFootHitbox.left < obstacleHitbox.right - 10 &&
-    dinoFootHitbox.right > obstacleHitbox.left + 10 &&
-    dinoBottom < 100 && // If dino is low (not jumping high enough)
-    obstacle.height > 50 // Only for tall obstacles
-  );
-  
-  const isColliding = feetHitObstacle || bodyHitObstacle;
-  
-  if (isColliding) {
-    console.log("💥 COLLISION! Type:", obstacle.type);
-    console.log("Dino height:", dinoBottom);
-    console.log("Dino feet:", dinoFootHitbox.bottom, "to", dinoFootHitbox.top);
-    console.log("Obstacle:", obstacleHitbox.bottom, "to", obstacleHitbox.top);
-  }
-  
-  return isColliding;
-}
-
-// ====== DRAW HITBOXES FOR DEBUGGING ======
-function drawHitbox(hitbox, type) {
-  // Remove existing debug box
-  const existing = document.querySelector(`.collision-debug.${type}`);
-  if (existing) existing.remove();
-  
-  const debugBox = document.createElement('div');
-  debugBox.className = `collision-debug ${type}`;
-  debugBox.style.cssText = `
-    position: absolute;
-    border: 2px solid ${type === 'dino' ? '#FF0000' : '#00FF00'};
-    background: ${type === 'dino' ? 'rgba(255,0,0,0.2)' : 'rgba(0,255,0,0.2)'};
-    left: ${hitbox.left}px;
-    width: ${hitbox.right - hitbox.left}px;
-    bottom: ${hitbox.bottom}px;
-    height: ${hitbox.top - hitbox.bottom}px;
-    pointer-events: none;
-    z-index: 50;
-  `;
-  
-  gameArea.appendChild(debugBox);
-  
-  // Remove after short time
-  setTimeout(() => debugBox.remove(), 100);
+  return false; // Dino is jumping, no collision
 }
 
 // ====== AUTO JUMP LOGIC ======
 function autoJumpLogic(obstacle) {
-  const dinoLeft = 80;
-  const dinoWidth = 60;
+  const dinoLeft = DINO_LEFT;
+  const dinoWidth = DINO_WIDTH;
   const obstacleRight = obstacle.right;
   const obstacleWidth = obstacle.width;
   const obstacleType = obstacle.type;
   
-  // Calculate distance to obstacle
+  // Calculate distance to obstacle - MAS MALAPIT BAGO TUMAYON
   const distanceToObstacle = 800 - obstacleRight - obstacleWidth - dinoLeft;
   
   // Jump based on obstacle type and distance
-  if (distanceToObstacle > 0 && distanceToObstacle < 150) {
-    if (obstacleType === 'river' && distanceToObstacle < 100 && !isDoubleJumping) {
+  if (distanceToObstacle > 0 && distanceToObstacle < 180) { // MAS MALAPIT
+    if (obstacleType === 'river' && distanceToObstacle < 130 && !isDoubleJumping) {
       // Double jump for rivers
       setTimeout(() => {
         if (!isDoubleJumping && isJumping) {
           jump(true);
         } else if (!isJumping) {
           jump();
-          setTimeout(() => jump(true), 150);
+          setTimeout(() => jump(true), 120);
         }
-      }, 50);
-    } else if (obstacleType !== 'river' && distanceToObstacle < 120 && !isJumping) {
-      // Single jump for other obstacles
+      }, 80);
+    } else if (obstacleType !== 'river' && distanceToObstacle < 150 && !isJumping) {
+      // Single jump for other obstacles - MAS AGANG JUMP
       setTimeout(() => {
         if (!isJumping) {
           jump();
         }
-      }, 50);
+      }, 80);
     }
   }
 }
 
 // ====== HANDLE COLLISION ======
 function handleCollision() {
-  if (isInvincible) return; // Don't lose life if invincible
+  if (isInvincible) return;
+  
+  console.log("💥 COLLISION DETECTED! Lives left:", lives - 1);
   
   lives--;
   updateDisplays();
@@ -695,19 +484,19 @@ function continueGame() {
   obstacles.forEach(obstacle => obstacle.element.remove());
   obstacles = [];
   
-  // Set invincibility for 2 seconds
+  // Set invincibility for 3 seconds
   isInvincible = true;
   dino.style.opacity = '0.6';
-  showGameMessage("Continue! Invincible for 2 seconds!");
+  showGameMessage("Continue! Invincible for 3 seconds!");
   
   // Restart game intervals
   startGameIntervals();
   
-  // Remove invincibility after 2 seconds
+  // Remove invincibility after 3 seconds
   setTimeout(() => {
     isInvincible = false;
     dino.style.opacity = '1';
-  }, 2000);
+  }, 3000);
 }
 
 // ====== GAME OVER ======
@@ -727,6 +516,13 @@ function gameOver() {
   finalHighScoreDisplay.textContent = highScore;
   
   // Show random tip
+  const gameTips = [
+    "Jump when obstacle is near!",
+    "Rivers need double jumps!",
+    "Start slow - game gets faster later!",
+    "Watch the spacing between obstacles!",
+    "Practice makes perfect!"
+  ];
   gameOverTip.textContent = gameTips[Math.floor(Math.random() * gameTips.length)];
   
   // Show game over modal
@@ -783,6 +579,12 @@ function toggleAutoJump() {
   updateDisplays();
 }
 
+// ====== TOGGLE FLOOR LINE ======
+function toggleFloorLine() {
+  gameArea.classList.toggle('show-floor-line');
+  showGameMessage(gameArea.classList.contains('show-floor-line') ? "Floor line: ON" : "Floor line: OFF");
+}
+
 // ====== EVENT LISTENERS ======
 
 // Keyboard controls
@@ -796,16 +598,12 @@ document.addEventListener("keydown", function (e) {
     case "Space":
       if (isGameOver) return;
       
-      const currentTime = Date.now();
-      
       // Check for double space press for double jump
-      if (isJumping && !isDoubleJumping && currentTime - lastJumpTime < 300) {
+      if (isJumping && !isDoubleJumping && e.repeat) {
         jump(true); // Double jump
       } else {
         jump(); // Single jump or start game
       }
-      
-      lastJumpTime = currentTime;
       break;
       
     case "KeyP":
@@ -826,10 +624,7 @@ document.addEventListener("keydown", function (e) {
       break;
       
     case "KeyH":
-      // Toggle hitbox visualization
-      window.showHitboxes = !window.showHitboxes;
-      showGameMessage(window.showHitboxes ? "Hitboxes ON" : "Hitboxes OFF");
-      console.log("Hitbox visualization:", window.showHitboxes ? "ON" : "OFF");
+      toggleFloorLine();
       break;
   }
 });
@@ -877,41 +672,9 @@ window.addEventListener('load', () => {
   updateDisplays();
   
   console.log("🎮 Dino Dash: Jurassic Adventure Loaded!");
-  console.log("📱 Controls:");
-  console.log("  SPACE - Jump / Start game");
-  console.log("  Double SPACE - Double jump for rivers");
-  console.log("  CLICK - Jump / Start game");
-  console.log("  Double CLICK - Double jump for rivers");
-  console.log("  P - Pause/Resume game");
-  console.log("  R - Restart game");
-  console.log("  A - Toggle Auto-Jump mode");
-  console.log("  H - Toggle hitbox visualization (debug)");
-  console.log("  Ctrl+D - Show game debug info");
-  console.log("🎯 ALL OBSTACLES ARE AT BOTTOM ONLY!");
-  console.log("🎯 Collision only when FEET hit obstacles!");
-});
-
-// ====== DEBUG FUNCTION ======
-function debugGame() {
-  console.log("=== GAME DEBUG ===");
-  console.log("Game Started:", gameStarted);
-  console.log("Game Paused:", isPaused);
-  console.log("Game Over:", isGameOver);
-  console.log("Is Jumping:", isJumping);
-  console.log("Is Double Jumping:", isDoubleJumping);
-  console.log("Is Invincible:", isInvincible);
-  console.log("Lives:", lives);
-  console.log("Score:", score);
-  console.log("Level:", level);
-  console.log("Game Speed:", gameSpeed);
-  console.log("Active Obstacles:", obstacles.length);
-  console.log("Obstacle Spawn Delay:", obstacleSpawnDelay);
-  console.log("==================");
-}
-
-// Add debug hotkey (Ctrl+D)
-document.addEventListener("keydown", function(e) {
-  if (e.code === "KeyD" && e.ctrlKey) {
-    debugGame();
-  }
+  console.log("✅ MAS MADALING OBSTACLES!");
+  console.log("✅ MAS MALAYONG SPACING (2 seconds)");
+  console.log("✅ MAS MABAGAL NA SPEED (3)");
+  console.log("✅ MAS MALIIT NA OBSTACLES");
+  console.log("✅ MAS MADALING TALUNDAN!");
 });
