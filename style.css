@@ -745,6 +745,23 @@ h1 {
   100% { transform: scale(2); opacity: 0; }
 }
 
+/* ====== COLLISION DEBUGGING ====== */
+.collision-debug {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.collision-debug.dino {
+  border: 2px solid #FF0000 !important;
+  background: rgba(255, 0, 0, 0.2) !important;
+}
+
+.collision-debug.obstacle {
+  border: 2px solid #00FF00 !important;
+  background: rgba(0, 255, 0, 0.2) !important;
+}
+
 /* ====== RESPONSIVE DESIGN ====== */
 @media (max-width: 850px) {
   .game {
